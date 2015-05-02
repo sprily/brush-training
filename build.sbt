@@ -12,9 +12,14 @@ lazy val commonSettings = Seq(
 )
 
 lazy val commonDependencies = Seq(
+
+  // logging
   "com.typesafe.scala-logging"  %% "scala-logging"        % "3.1.0",
   "ch.qos.logback"               % "logback-core"         % "1.1.2",
-  "ch.qos.logback"               % "logback-classic"      % "1.1.2"
+  "ch.qos.logback"               % "logback-classic"      % "1.1.2",
+
+  // testing
+  "org.specs2"                  %% "specs2-core"          % "3.4"         % "test"
 )
 
 
