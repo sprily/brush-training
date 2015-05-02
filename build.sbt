@@ -1,3 +1,4 @@
+
 lazy val commonSettings = Seq(
   organization := "uk.co.sprily",
   version := "0.1.0-SNAPSHOT",
@@ -8,7 +9,12 @@ lazy val commonSettings = Seq(
     "-Xlint",
     "-Ywarn-unused-import",
     "-unchecked"),
-  libraryDependencies ++= commonDependencies
+  libraryDependencies ++= commonDependencies,
+  resolvers ++= commonResolvers
+)
+
+lazy val commonResolvers = Seq(
+  "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 )
 
 lazy val commonDependencies = Seq(
@@ -19,7 +25,7 @@ lazy val commonDependencies = Seq(
   "ch.qos.logback"               % "logback-classic"      % "1.1.2",
 
   // testing
-  "org.specs2"                  %% "specs2-core"          % "3.4"         % "test"
+  "org.specs2"                  %% "specs2-core"          % "3.6"         % "test"
 )
 
 
