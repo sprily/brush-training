@@ -28,10 +28,14 @@ lazy val commonDependencies = Seq(
   "org.specs2"                  %% "specs2-core"          % "3.6"         % "test"
 )
 
+lazy val web = (project in file("web")).
+  settings(commonSettings: _*).
+  enablePlugins(PlayScala)
 
 // The service that runs internally, on-site.
 lazy val onSite = (project in file("on-site")).
   settings(commonSettings: _*).
   settings(
     name := "brush-training-facility"
-)
+  ).
+  dependsOn(web)
