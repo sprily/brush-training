@@ -33,7 +33,8 @@ lazy val web = (project in file("web")).
   settings(commonSettings: _*).
   settings(
     scalaJSProjects := Seq(webJS),
-    pipelineStages := Seq(scalaJSProd)
+    pipelineStages := Seq(scalaJSProd),
+    libraryDependencies += "com.vmunier" %% "play-scalajs-scripts" % "0.2.1"
   ).
   enablePlugins(PlayScala).
   aggregate(Seq(webJS).map(projectToRef):_*)
@@ -41,7 +42,11 @@ lazy val web = (project in file("web")).
 lazy val webJS = (project in file("web-js")).
   settings(commonSettings: _*).
   settings(
+    scalaJSStage := FastOptStage,
+    persistLauncher in Compile := true,
+    persistLauncher in Test    := false,
     libraryDependencies ++= Seq(
+      "org.scala-js" %%% "scalajs-dom" % "0.8.0",
       "com.github.japgolly.scalajs-react" %%% "test" % "0.8.4" % "test",
       "com.github.japgolly.scalajs-react" %%% "core" % "0.8.4",
       "com.github.japgolly.scalajs-react" %%% "ext-scalaz71" % "0.8.4",
