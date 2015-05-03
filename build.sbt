@@ -45,6 +45,7 @@ lazy val webJS = (project in file("web-js")).
     scalaJSStage := FastOptStage,
     persistLauncher in Compile := true,
     persistLauncher in Test    := false,
+    skip in packageJSDependencies := false,
     libraryDependencies ++= Seq(
       "org.scala-js" %%% "scalajs-dom" % "0.8.0",
       "com.github.japgolly.scalajs-react" %%% "test" % "0.8.4" % "test",
