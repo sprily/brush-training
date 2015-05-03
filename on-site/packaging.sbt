@@ -1,3 +1,5 @@
+import com.typesafe.sbt.packager.archetypes.ServerLoader.SystemV
+
 // Packaging configuration for the on-site service
 //enablePlugins(JDebPackaging)
 enablePlugins(DebianPlugin)
@@ -32,4 +34,4 @@ version in Debian <<= (version, buildCount, commitId) { (v, build, commit) =>
 }
 
 debianPackageDependencies in Debian ++= Seq("java2-runtime")
-
+serverLoading in Debian := SystemV
