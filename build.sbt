@@ -26,7 +26,8 @@ lazy val commonDependencies = Seq(
   "ch.qos.logback"               % "logback-classic"      % "1.1.2",
 
   // testing
-  "org.specs2"                  %% "specs2-core"          % "3.6"         % "test"
+  "org.specs2"                  %% "specs2-core"          % "3.6"         % "test",
+  "org.specs2"                  %% "specs2-junit"         % "3.6"         % "test"
 )
 
 lazy val web = (project in file("web")).
@@ -63,4 +64,5 @@ lazy val onSite = (project in file("on-site")).
   settings(
     name := "brush-training-facility"
   ).
+  enablePlugins(PlayScala).
   dependsOn(web)
