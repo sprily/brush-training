@@ -1,0 +1,4 @@
+# Home page
+GET     /                           uk.co.sprily.btf.web.controllers.Application.index
+
+GET  /assets/*file        controllers.Assets.at(path="/public", file)
