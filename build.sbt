@@ -1,7 +1,7 @@
 
 lazy val commonSettings = Seq(
   organization := "uk.co.sprily",
-  version := "0.1.0",
+  version := "0.1.1",
   scalaVersion := "2.11.6",
   scalacOptions ++= Seq(
     "-feature",
