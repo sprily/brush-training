@@ -1,3 +1,4 @@
+import sbt.Project.projectToRef
 
 lazy val commonSettings = Seq(
   organization := "uk.co.sprily",
@@ -30,7 +31,16 @@ lazy val commonDependencies = Seq(
 
 lazy val web = (project in file("web")).
   settings(commonSettings: _*).
-  enablePlugins(PlayScala)
+  settings(
+    scalaJSProjects := Seq(webJS),
+    pipelineStages := Seq(scalaJSProd)
+  ).
+  enablePlugins(PlayScala).
+  aggregate(Seq(webJS).map(projectToRef):_*)
+
+lazy val webJS = (project in file("web-js")).
+  settings(commonSettings: _*).
+  enablePlugins(ScalaJSPlugin, ScalaJSPlay)
 
 // The service that runs internally, on-site.
 lazy val onSite = (project in file("on-site")).
