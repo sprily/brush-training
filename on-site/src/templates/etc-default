@@ -10,29 +10,11 @@
 # ${{daemon_user}}      daemon user
 # -------------------------------------------------
 
-# Setting -X directly (-J is stripped)
-# -J-X
--J-Xms128m
--J-Xms512m
--J-server
+JAVA_OPTS="-Xms128m -Xms512m -server $JAVA_OPTS"
 
 # Add additional jvm parameters
--Dhttp.port=80
--Dhttp.address=0.0.0.0
+# TODO: bind to 80 as non-privelaged user, or setup reverse proxy
+JAVA_OPTS="-Dhttp.port=8080 -Dhttp.address=0.0.0.0 $JAVA_OPTS"
 
-# For play applications you may set
--Dpidfile.path=/var/run/${{app_name}}/play.pid
-
--Dconfig.file=/etc/${{app_name}}/brush-training-facility.conf
-
-# Turn on JVM debugging, open at the given port
-# -jvm-debug <port>
-
-# Don't run the java version check
-# -no-version-check
-
-# enabling debug and sending -d as app argument
-# the '--' prevents app-parameter swallowing when
-# using a reserved parameter. See #184
-# -d -- -d
-
+JAVA_OPTS="-Dpidfile.path=/var/run/${{app_name}}/play.pid $JAVA_OPTS"
+JAVA_OPTS="-Dconfig.file=/etc/${{app_name}}/brush-training-facility.conf $JAVA_OPTS"
