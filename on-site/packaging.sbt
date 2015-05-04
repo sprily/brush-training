@@ -1,8 +1,8 @@
 import com.typesafe.sbt.packager.archetypes.ServerLoader.SystemV
 
 // Packaging configuration for the on-site service
-//enablePlugins(JDebPackaging)
-enablePlugins(DebianPlugin)
+enablePlugins(JDebPackaging)
+//enablePlugins(DebianPlugin)
 enablePlugins(JavaServerAppPackaging)
 
 maintainer := "Ian Murray <ian@sprily.co.uk>"
@@ -35,4 +35,3 @@ version in Debian <<= (version, buildCount, commitId) { (v, build, commit) =>
 
 debianPackageDependencies in Debian ++= Seq("java2-runtime")
 serverLoading in Debian := SystemV
-bashScriptExtraDefines += """addJava "-Dconfig.file=${app_home}/../conf/brush-training-facility.conf""""

@@ -23,6 +23,8 @@
 # For play applications you may set
 -Dpidfile.path=/var/run/${{app_name}}/play.pid
 
+-Dconfig.file=/etc/${{app_name}}/brush-training-facility.conf
+
 # Turn on JVM debugging, open at the given port
 # -jvm-debug <port>
 
@@ -33,3 +35,4 @@
 # the '--' prevents app-parameter swallowing when
 # using a reserved parameter. See #184
 # -d -- -d
+
