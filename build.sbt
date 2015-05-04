@@ -62,6 +62,7 @@ lazy val webJS = (project in file("web-js")).
     persistLauncher in Test    := false,
     skip in packageJSDependencies := false,
     libraryDependencies ++= Seq(
+      "org.monifu" %%% "monifu" % "1.0-M1",
       "org.scala-js" %%% "scalajs-dom" % "0.8.0",
       "com.github.japgolly.scalajs-react" %%% "test" % "0.8.4" % "test",
       "com.github.japgolly.scalajs-react" %%% "core" % "0.8.4",
