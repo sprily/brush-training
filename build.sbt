@@ -33,6 +33,17 @@ lazy val commonDependencies = Seq(
 lazy val web = (project in file("web")).
   settings(commonSettings: _*).
   settings(
+
+    // An attempt to prevent the root project's propogation of the debian:packageBin
+    // Task from building the web sub-project.  The reason it does is because web
+    // enables the Play plugin, which must auto-enable the native packager, but attempts
+    // to disable it again don't work.  So this workaround is to hard-code the Task itself
+    // to not do anything useful.  There's a SO question on a similar problem, with no
+    // solution yet:
+    //
+    // http://stackoverflow.com/questions/28948964/dont-publish-a-docker-image-for-each-sbt-subproject
+    packageBin in Debian := file(""),
+
     scalaJSProjects := Seq(webJS),
     pipelineStages := Seq(scalaJSProd),
     libraryDependencies += "com.vmunier" %% "play-scalajs-scripts" % "0.2.1"
