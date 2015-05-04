@@ -46,7 +46,10 @@ lazy val web = (project in file("web")).
 
     scalaJSProjects := Seq(webJS),
     pipelineStages := Seq(scalaJSProd),
-    libraryDependencies += "com.vmunier" %% "play-scalajs-scripts" % "0.2.1"
+    libraryDependencies ++= Seq(
+      "com.vmunier"           %% "play-scalajs-scripts" % "0.2.1",
+      "org.scalaz.stream"     %% "scalaz-stream"        % "0.7a"
+    )
   ).
   enablePlugins(PlayScala).
   aggregate(Seq(webJS).map(projectToRef):_*)

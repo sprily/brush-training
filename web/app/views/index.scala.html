@@ -1,6 +1,6 @@
 @(message: String)
 
-@layout("Brush Testing Facility") {
+@layout(s"Brush Testing Facility [$message]") {
    <div id="main-app"></div>
    @playscalajs.html.scripts("webJS")
 }
