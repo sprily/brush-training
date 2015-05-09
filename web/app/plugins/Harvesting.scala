@@ -18,6 +18,10 @@ class Harvesting(app: Application) extends Plugin {
 
   override def onStart() = {
 
+    // load the device config
+    val deviceConfig = app.plugin[DeviceConfig]
+      .getOrElse(throw new RuntimeException("Harvesting plugin depends on DeviceConfig"))
+
     running.set(true)
     val es = Executors.newFixedThreadPool(1)
 

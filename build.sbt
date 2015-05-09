@@ -15,10 +15,14 @@ lazy val commonSettings = Seq(
 )
 
 lazy val commonResolvers = Seq(
-  "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
+  "scalaz-bintray"  at "http://dl.bintray.com/scalaz/releases",
+  "Sprily Releases" at "https://repo.sprily.co.uk/nexus/content/repositories/releases"
 )
 
 lazy val commonDependencies = Seq(
+
+  // config
+  "com.github.kxbmap"           %% "configs"              % "0.2.4",
 
   // logging
   "com.typesafe.scala-logging"  %% "scala-logging"        % "3.1.0",
@@ -48,7 +52,8 @@ lazy val web = (project in file("web")).
     pipelineStages := Seq(scalaJSProd),
     libraryDependencies ++= Seq(
       "com.vmunier"           %% "play-scalajs-scripts" % "0.2.1",
-      "org.scalaz.stream"     %% "scalaz-stream"        % "0.7a"
+      "org.scalaz.stream"     %% "scalaz-stream"        % "0.7a",
+      "uk.co.sprily"          %% "dh-modbus"            % "0.1.0-SNAPSHOT"
     )
   ).
   enablePlugins(PlayScala).
