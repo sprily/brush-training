@@ -10,6 +10,8 @@ import play.api.Play.current
 import scalaz.concurrent.Task
 import scalaz.stream._
 
+import uk.co.sprily.dh.modbus.ModbusResponse
+
 object Application extends Controller {
 
   def index = Action {
@@ -21,18 +23,18 @@ object Application extends Controller {
   }
 
   object MyWebSocketActor {
-    def props(out: ActorRef, stream: Process[Task,Int]) = Props(new MyWebSocketActor(out, stream))
+    def props(out: ActorRef, stream: Process[Task,ModbusResponse]) = Props(new MyWebSocketActor(out, stream))
   }
 
-  class MyWebSocketActor(out: ActorRef, stream: Process[Task,Int]) extends Actor {
+  class MyWebSocketActor(out: ActorRef, stream: Process[Task,ModbusResponse]) extends Actor {
 
     override def preStart() = {
       (stream observe (channel.lift(i => Task.delay(self ! i)))).run.runAsync(println)
     }
 
     def receive = {
-      case count: Int =>
-        out ! s"Count: $count"
+      case ModbusResponse(device, ts, m) =>
+        out ! s"$device : $ts"
     }
   }
 

@@ -22,15 +22,24 @@ object Test extends js.JSApp {
       ws.get.data.foreach(update)
     }
 
-    private def update(msg: String) = $.modState(s => State(msg))
+    private def update(msg: String) = $.modState(s =>
+      State(connected=true,
+            latest=(msg +: s.latest).slice(0,10))
+    )
   }
 
-  case class State(msg: String)
+  case class State(connected: Boolean, latest: IndexedSeq[String])
+  object State {
+    def init = State(connected=false, latest=Vector.empty)
+  }
 
   val Dashboard = ReactComponentB[Unit]("Dashboard")
-    .initialState(State("Connecting to server..."))
+    .initialState(State.init)
     .backend(new Backend(_))
-    .renderS(($,_,S) => <.p(S.msg))
+    .renderS(($,_,S) => S.connected match {
+      case false => <.p("Connecting to server...")
+      case true  => <.div(S.latest.map(<.p(_)))
+    })
     .componentDidMount(_.backend.start())
     .buildU
 

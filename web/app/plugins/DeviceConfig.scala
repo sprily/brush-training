@@ -24,8 +24,8 @@ import uk.co.sprily.dh.modbus.ModbusNetLoc
 class DeviceConfig(app: Application) extends Plugin
                                         with LazyLogging {
 
-  val genDevice = loadDeviceConfig("datahopper.generator-meter")
-  val gridDevice = loadDeviceConfig("datahopper.grid-meter")
+  lazy val genDevice = loadDeviceConfig("datahopper.generator-meter")
+  lazy val gridDevice = loadDeviceConfig("datahopper.grid-meter")
 
   private def loadDeviceConfig(key: String) = {
     logger.info(s"Attempting to load '$key' device.")
