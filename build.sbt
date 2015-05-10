@@ -84,7 +84,19 @@ lazy val webJS = (project in file("web-js")).
 lazy val onSite = (project in file("on-site")).
   settings(commonSettings: _*).
   settings(
-    name := "brush-training-facility"
+    name := "brush-training-facility",
+
+    // some mapping names end up with double-slashes (in particular, the config
+    // files defined in on-site/conf.  The problem with this is that the .deb
+    // file that's created ends up with a mis-configured conffiles; resulting
+    // in those files not being correctly defined as configuration files, and
+    // so they end up being overwritten on a package update.
+    mappings in Universal := {
+      val universalMappings = (mappings in Universal).value
+      (mappings in Universal).value.map {
+        case (file, name) => (file, name.replace("//", "/"))
+      }
+    }
   ).
   enablePlugins(PlayScala).
   dependsOn(web)
