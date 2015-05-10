@@ -92,7 +92,6 @@ lazy val onSite = (project in file("on-site")).
     // in those files not being correctly defined as configuration files, and
     // so they end up being overwritten on a package update.
     mappings in Universal := {
-      val universalMappings = (mappings in Universal).value
       (mappings in Universal).value.map {
         case (file, name) => (file, name.replace("//", "/"))
       }
