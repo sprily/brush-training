@@ -1,2 +1,3 @@
 105:uk.co.sprily.btf.web.plugins.DeviceConfig
 110:uk.co.sprily.btf.web.plugins.Harvesting
+120:uk.co.sprily.btf.web.plugins.MqttPublisher

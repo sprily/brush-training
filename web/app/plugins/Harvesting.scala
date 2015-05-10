@@ -57,6 +57,8 @@ class Harvesting(app: Application) extends Plugin
     killSwitch.discrete.wye(readings)(wye.interrupt)
   )
 
+  lazy val mqtt = MqttPublisher.publish
+
   override def onStart() = {
 
     val cleanup = (r: Throwable \/ Unit) =>
@@ -65,7 +67,7 @@ class Harvesting(app: Application) extends Plugin
         success => logger.info(s"Shutdown")
       )
 
-    (killableReadings to topic.publish).run.runAsync(cleanup)
+    (killableReadings observe (mqtt) to topic.publish).run.runAsync(cleanup)
   }
 
   override def onStop() = {

@@ -16,7 +16,8 @@ lazy val commonSettings = Seq(
 
 lazy val commonResolvers = Seq(
   "scalaz-bintray"  at "http://dl.bintray.com/scalaz/releases",
-  "Sprily Releases" at "https://repo.sprily.co.uk/nexus/content/repositories/releases"
+  "Sprily Releases" at "https://repo.sprily.co.uk/nexus/content/repositories/releases",
+  "Sprily Third Party" at "https://repo.sprily.co.uk/nexus/content/repositories/thirdparty"
 )
 
 lazy val commonDependencies = Seq(
@@ -53,7 +54,8 @@ lazy val web = (project in file("web")).
     libraryDependencies ++= Seq(
       "com.vmunier"           %% "play-scalajs-scripts" % "0.2.1",
       "org.scalaz.stream"     %% "scalaz-stream"        % "0.7a",
-      "uk.co.sprily"          %% "dh-modbus"            % "0.1.0-SNAPSHOT"
+      "uk.co.sprily"          %% "dh-modbus"            % "0.1.0-SNAPSHOT",
+      "uk.co.sprily"          %% "scala-mqtt-core"      % "0.1-SNAPSHOT"
     )
   ).
   enablePlugins(PlayScala).
