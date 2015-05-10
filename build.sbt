@@ -55,7 +55,7 @@ lazy val web = (project in file("web")).
       "com.vmunier"           %% "play-scalajs-scripts" % "0.2.1",
       "org.scalaz.stream"     %% "scalaz-stream"        % "0.7a",
       "uk.co.sprily"          %% "dh-modbus"            % "0.1.0",
-      "uk.co.sprily"          %% "scala-mqtt-core"      % "0.1.2"
+      "uk.co.sprily"          %% "scala-mqtt-core"      % "0.1.3"
     )
   ).
   enablePlugins(PlayScala).

@@ -69,7 +69,8 @@ class MqttPublisher(app: Application) extends Plugin
       cleanSession = true,
       username = Some(cfg.get[String]("username")),
       password = Some(cfg.get[String]("password")),
-      keepAliveInterval = 60.seconds)
+      keepAliveInterval = 60.seconds,
+      InMemory)
     val elided = o.copy(password=o.password.map(_ => "<elided>"))
     logger.info(s"Loaded '$key' MQTT options: ${elided}")
     o
