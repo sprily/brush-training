@@ -2,6 +2,7 @@ package uk.co.sprily
 package btf.web
 package plugins
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.concurrent.blocking
 import scala.concurrent.Future
@@ -54,8 +55,15 @@ class MqttPublisher(app: Application) extends Plugin
   }
 
   override def onStop() = {
-    logger.info("Disconnecting from MQTT broker")
-    client.foreach(AsyncSimpleClient.disconnect)
+    try {
+      logger.info("Disconnecting from MQTT broker")
+      client.foreach { c => 
+        Await.ready(AsyncSimpleClient.disconnect(c), 10.seconds)
+      }
+    } catch {
+      case (e: Exception) =>
+        logger.error(s"Error shutting down MQTT publisher: $e")
+    }
   }
 
   private[this] def loadOptions(key: String) = {
