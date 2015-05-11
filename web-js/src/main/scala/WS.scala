@@ -12,43 +12,76 @@ sealed trait WSState
 case object WSOpen extends WSState
 case object WSClosed extends WSState
 
-object WSService {
+trait WSModule {
+  def connect[T](url: String): WS[T]
+}
+
+trait WS[T] {
+  def status: Observable[WSState]
+  def data: Observable[String]    // TODO: make this generic
+  def errors: Observable[dom.ErrorEvent]
+  def disconnect(): Unit
+}
+
+object WSModule extends WSModule {
 
   import monifu.concurrent.Implicits.globalScheduler
 
-  trait WSLike[T] {
-    def status: Observable[WSState]
-    def data: Observable[T]
-    def errors: Observable[dom.ErrorEvent]
-  }
+  val logger = Logging.logger("WS")
 
   /**
     * TODO: implement back-pressure, so that we receive the latest
     *       data when ready.  This requires an update to the WS controller
     *       server-side.  Currently PublishChannel is unbuffered.
     */
-  protected[WSService] case class WS[T](
-      rawWS: dom.WebSocket,
+  protected[WSModule] class WSImpl[T](
+      url: String,
       statusChannel: PublishChannel[WSState],
-      dataChannel: PublishChannel[T],
-      errorsChannel: PublishChannel[dom.ErrorEvent]) extends WSLike[T] {
+      dataChannel: PublishChannel[String],
+      errorsChannel: PublishChannel[dom.ErrorEvent]) extends WS[T] {
+
+    private[this] var raw: Option[dom.WebSocket] = None// = new dom.WebSocket(url)
+    private[this] var active = true
+
+    reconnect() // initial connection
 
     override def status = statusChannel
     override def data   = dataChannel
     override def errors = errorsChannel
+
+    // Re-connect whenever the websocket disconnects
+    status.filter(_ == WSClosed).foreach(_ => reconnect())
+    status.filter(_ == WSOpen).foreach(_ => logger.info(s"Connected to $url"))
+
+    override def disconnect(): Unit = {
+      logger.info(s"Closing websocket: $this")
+      active = false
+      raw.foreach(_.close())
+    }
+
+    private[this] def reconnect(): Unit = {
+      if (active) {
+        logger.info(s"Opening connection to $url")
+        raw = Some {
+          val ws = new dom.WebSocket(url)
+          ws.onopen    = (e: dom.Event)        => statusChannel.pushNext(WSOpen)
+          ws.onclose   = (e: dom.CloseEvent)   => statusChannel.pushNext(WSClosed)
+          ws.onmessage = (e: dom.MessageEvent) => dataChannel.pushNext(e.data.asInstanceOf[String])
+          ws.onerror   = (e: dom.ErrorEvent)   => errorsChannel.pushNext(e)
+          ws
+        }
+      }
+    }
   }
     
-  def connect(url: String): WSLike[String] = {
-    val rawWS = new dom.WebSocket(url)
+  override def connect[T](url: String): WS[T] = {
+
     val statusChannel = PublishChannel[WSState]()
     val dataChannel = PublishChannel[String]()
     val errorsChannel = PublishChannel[dom.ErrorEvent]()
 
-    rawWS.onopen    = (e: dom.Event) => statusChannel.pushNext(WSOpen)
-    rawWS.onclose   = (e: dom.CloseEvent) => statusChannel.pushNext(WSClosed)
-    rawWS.onmessage = (e: dom.MessageEvent) => dataChannel.pushNext(e.data.asInstanceOf[String])
-
-    WS(rawWS, statusChannel, dataChannel, errorsChannel)
+    new WSImpl(url, statusChannel, dataChannel, errorsChannel)
   }
+
 
 }

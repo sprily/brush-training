@@ -14,11 +14,11 @@ object Test extends js.JSApp {
 
     import monifu.concurrent.Implicits.globalScheduler
 
-    private[this] var ws: js.UndefOr[WSService.WSLike[String]] = js.undefined
+    private[this] var ws: js.UndefOr[WS[String]] = js.undefined
     private[this] val wsURI = js.Dynamic.global.jsRoutes.uk.co.sprily.btf.web.controllers.Application.socket().webSocketURL()
 
     def start() = {
-      ws = WSService.connect(wsURI.asInstanceOf[String])
+      ws = WSModule.connect[String](wsURI.asInstanceOf[String])
       ws.get.data.foreach(update)
     }
 
