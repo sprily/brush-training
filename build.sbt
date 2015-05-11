@@ -10,9 +10,12 @@ lazy val commonSettings = Seq(
     "-Xlint",
     "-Ywarn-unused-import",
     "-unchecked"),
-  libraryDependencies ++= commonDependencies,
   resolvers ++= commonResolvers
 )
+
+lazy val commonSettingsWithDeps = Seq(
+  libraryDependencies ++= commonDependencies
+) ++ commonSettings
 
 lazy val commonResolvers = Seq(
   "scalaz-bintray"  at "http://dl.bintray.com/scalaz/releases",
@@ -36,7 +39,7 @@ lazy val commonDependencies = Seq(
 )
 
 lazy val web = (project in file("web")).
-  settings(commonSettings: _*).
+  settings(commonSettingsWithDeps: _*).
   settings(
 
     // An attempt to prevent the root project's propogation of the debian:packageBin
@@ -59,10 +62,11 @@ lazy val web = (project in file("web")).
     )
   ).
   enablePlugins(PlayScala).
+  dependsOn(webSharedJvm).
   aggregate(Seq(webJS).map(projectToRef):_*)
 
 lazy val webJS = (project in file("web-js")).
-  settings(commonSettings: _*).
+  settings(commonSettingsWithDeps: _*).
   settings(
     scalaJSStage := FastOptStage,
     persistLauncher in Compile := true,
@@ -78,11 +82,20 @@ lazy val webJS = (project in file("web-js")).
       "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.4"),
     jsDependencies += "org.webjars" % "react" % "0.12.1" / "react-with-addons.js" commonJSName "React"
   ).
-  enablePlugins(ScalaJSPlugin, ScalaJSPlay)
+  enablePlugins(ScalaJSPlugin, ScalaJSPlay).
+  dependsOn(webSharedJs)
+
+lazy val webShared = (crossProject.crossType(CrossType.Pure) in file("web-shared")).
+  settings(commonSettings:_*).
+  jsConfigure(_ enablePlugins ScalaJSPlay).
+  jsSettings(sourceMapsBase := baseDirectory.value / "..")
+
+lazy val webSharedJvm = webShared.jvm
+lazy val webSharedJs  = webShared.js
 
 // The service that runs internally, on-site.
 lazy val onSite = (project in file("on-site")).
-  settings(commonSettings: _*).
+  settings(commonSettingsWithDeps: _*).
   settings(
     name := "brush-training-facility",
 
