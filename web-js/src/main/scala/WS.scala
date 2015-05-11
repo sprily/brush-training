@@ -2,6 +2,8 @@ package uk.co.sprily
 package btf.webjs
 
 import scala.scalajs.js
+import scala.scalajs.js.Date
+import scala.scalajs.js.typedarray.ArrayBuffer
 
 import monifu.reactive._
 import monifu.reactive.channels._
@@ -29,6 +31,8 @@ object WSModule extends WSModule {
 
   val logger = Logging.logger("WS")
 
+  private[WSModule] case class IntervalHandler(value: Int) extends AnyVal
+
   /**
     * TODO: implement back-pressure, so that we receive the latest
     *       data when ready.  This requires an update to the WS controller
@@ -42,20 +46,27 @@ object WSModule extends WSModule {
 
     private[this] var raw: Option[dom.WebSocket] = None// = new dom.WebSocket(url)
     private[this] var active = true
+    private[this] var lastHB = Date.now()
+    private[this] var interval = 5000
 
     reconnect() // initial connection
-
-    override def status = statusChannel
-    override def data   = dataChannel
-    override def errors = errorsChannel
 
     // Re-connect whenever the websocket disconnects
     status.filter(_ == WSClosed).foreach(_ => reconnect())
     status.filter(_ == WSOpen).foreach(_ => logger.info(s"Connected to $url"))
 
+    // Set-up heartbeat
+    data.filter(_ == "heartbeat").foreach(_ => lastHB = Date.now())
+    private[this] val intervalH = IntervalHandler(dom.window.setInterval(checkHeartbeat _, interval))
+
+    override def status = statusChannel
+    override def data   = dataChannel
+    override def errors = errorsChannel
+
     override def disconnect(): Unit = {
       logger.info(s"Closing websocket: $this")
       active = false
+      dom.window.clearInterval(intervalH.value)
       raw.foreach(_.close())
     }
 
@@ -72,6 +83,28 @@ object WSModule extends WSModule {
         }
       }
     }
+
+    private[this] def checkHeartbeat(): Unit = {
+      logger.debug(s"Checking heartbeat")
+      if (lastHB + interval < Date.now()) {
+        heartbeatFailed()
+      }
+    }
+
+    private[this] def heartbeatFailed(): Unit = {
+      logger.warning(s"Heartbeat failed")
+      raw match {
+        case Some(ws) if ws.readyState == dom.WebSocket.OPEN =>
+          logger.info(s"Closing connection due to hearbeat failing")
+          ws.close()
+        case Some(_) =>
+          logger.debug(s"Not closing connection due to heartbeat failure as it is not open")
+        case None =>
+          logger.error(s"Unexpected state: no raw websocket available")
+          reconnect()
+      }
+    }
+
   }
     
   override def connect[T](url: String): WS[T] = {

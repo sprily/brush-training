@@ -2,6 +2,8 @@ package uk.co.sprily
 package btf.web
 package controllers
 
+import scala.concurrent.duration._
+
 import akka.actor._
 
 import play.api.mvc._
@@ -28,11 +30,18 @@ object Application extends Controller {
 
   class MyWebSocketActor(out: ActorRef, stream: Process[Task,ModbusResponse]) extends Actor {
 
+    import context._
+    case object SendHeartbeat
+
     override def preStart() = {
       (stream observe (channel.lift(i => Task.delay(self ! i)))).run.runAsync(println)
+      system.scheduler.scheduleOnce(3000.millis, self, SendHeartbeat)
     }
 
     def receive = {
+      case SendHeartbeat =>
+        out ! "heartbeat"
+        system.scheduler.scheduleOnce(3000.millis, self, SendHeartbeat)
       case ModbusResponse(device, ts, m) =>
         out ! s"$device : $ts"
     }
