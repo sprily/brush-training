@@ -1,6 +1,8 @@
 package uk.co.sprily
 package btf.webjs
 
+import scala.concurrent.duration.FiniteDuration
+
 import scala.scalajs.js
 import scala.scalajs.js.Date
 import scala.scalajs.js.typedarray.ArrayBuffer
@@ -15,7 +17,7 @@ case object WSOpen extends WSState
 case object WSClosed extends WSState
 
 trait WSModule {
-  def connect[T](url: String): WS[T]
+  def connect[T](url: String, heartbeat: FiniteDuration): WS[T]
 }
 
 trait WS[T] {
@@ -40,14 +42,14 @@ object WSModule extends WSModule {
     */
   protected[WSModule] class WSImpl[T](
       url: String,
+      heartbeat: FiniteDuration,
       statusChannel: PublishChannel[WSState],
       dataChannel: PublishChannel[String],
       errorsChannel: PublishChannel[dom.ErrorEvent]) extends WS[T] {
 
-    private[this] var raw: Option[dom.WebSocket] = None// = new dom.WebSocket(url)
+    private[this] var raw: Option[dom.WebSocket] = None
     private[this] var active = true
     private[this] var lastHB = Date.now()
-    private[this] var interval = 5000
 
     reconnect() // initial connection
 
@@ -57,7 +59,7 @@ object WSModule extends WSModule {
 
     // Set-up heartbeat
     data.filter(_ == "heartbeat").foreach(_ => lastHB = Date.now())
-    private[this] val intervalH = IntervalHandler(dom.window.setInterval(checkHeartbeat _, interval))
+    private[this] val intervalH = IntervalHandler(dom.window.setInterval(checkHeartbeat _, heartbeat.toMillis))
 
     override def status = statusChannel
     override def data   = dataChannel
@@ -86,7 +88,7 @@ object WSModule extends WSModule {
 
     private[this] def checkHeartbeat(): Unit = {
       logger.debug(s"Checking heartbeat")
-      if (lastHB + interval < Date.now()) {
+      if (lastHB + heartbeat.toMillis < Date.now()) {
         heartbeatFailed()
       }
     }
@@ -95,7 +97,7 @@ object WSModule extends WSModule {
       logger.warning(s"Heartbeat failed")
       raw match {
         case Some(ws) if ws.readyState == dom.WebSocket.OPEN =>
-          logger.info(s"Closing connection due to hearbeat failing")
+          logger.info(s"Closing connection due to heartbeat failing")
           ws.close()
         case Some(_) =>
           logger.debug(s"Not closing connection due to heartbeat failure as it is not open")
@@ -107,13 +109,13 @@ object WSModule extends WSModule {
 
   }
     
-  override def connect[T](url: String): WS[T] = {
+  override def connect[T](url: String, heartbeat: FiniteDuration): WS[T] = {
 
     val statusChannel = PublishChannel[WSState]()
     val dataChannel = PublishChannel[String]()
     val errorsChannel = PublishChannel[dom.ErrorEvent]()
 
-    new WSImpl(url, statusChannel, dataChannel, errorsChannel)
+    new WSImpl(url, heartbeat, statusChannel, dataChannel, errorsChannel)
   }
 
 

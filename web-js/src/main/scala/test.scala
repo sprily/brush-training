@@ -1,6 +1,8 @@
 package uk.co.sprily
 package btf.webjs
 
+import scala.concurrent.duration._
+
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import japgolly.scalajs.react.ScalazReact._
@@ -18,7 +20,7 @@ object Test extends js.JSApp {
     private[this] val wsURI = js.Dynamic.global.jsRoutes.uk.co.sprily.btf.web.controllers.Application.socket().webSocketURL()
 
     def start() = {
-      ws = WSModule.connect[String](wsURI.asInstanceOf[String])
+      ws = WSModule.connect[String](wsURI.asInstanceOf[String], 10.seconds)
       ws.get.data.foreach(update)
     }
 
