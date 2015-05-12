@@ -31,18 +31,20 @@ class Harvesting(app: Application) extends Plugin
   // Hard-coded reading requests because what we read is heavily tied
   // into the custom moniting application.
   lazy private val genRequests = List(
-    ModbusRequest(devices.genDevice, RegRange(50514, 50567)),
-    ModbusRequest(devices.genDevice, RegRange(50770, 50778))
+    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC550)),
+    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC551)),
+    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC552))
   )
 
   lazy private val gridRequests = List(
-    ModbusRequest(devices.gridDevice, RegRange(50515, 50567)),
-    ModbusRequest(devices.gridDevice, RegRange(50771, 50778))
+    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC550)),
+    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC551)),
+    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC552))
   )
 
   lazy private val handler = new ModbusRequestHandler(
     ioPool = Executors.newFixedThreadPool(genRequests.length + gridRequests.length),
-    maxConnections = 3,   // Leave 1 concurrent connection available for other applications
+    maxConnections = 1,   // Leave connections available for other applications, Diris has limit of 4
     closeUnusedConnectionAfter = 1.minute)
 
   lazy private val killSwitch = async.signalOf[Boolean](false)
