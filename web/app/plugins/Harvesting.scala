@@ -37,9 +37,9 @@ class Harvesting(app: Application) extends Plugin
   )
 
   lazy private val gridRequests = List(
-    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC550)),
-    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC551)),
-    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC552))
+    ModbusRequest(devices.gridDevice, RegRange(0xC550, 0xC550)),
+    ModbusRequest(devices.gridDevice, RegRange(0xC550, 0xC551)),
+    ModbusRequest(devices.gridDevice, RegRange(0xC550, 0xC552))
   )
 
   lazy private val handler = new ModbusRequestHandler(
