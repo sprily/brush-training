@@ -31,15 +31,11 @@ class Harvesting(app: Application) extends Plugin
   // Hard-coded reading requests because what we read is heavily tied
   // into the custom moniting application.
   lazy private val genRequests = List(
-    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC550)),
-    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC551)),
-    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC552))
+    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC58D)) // table 1
   )
 
   lazy private val gridRequests = List(
-    ModbusRequest(devices.gridDevice, RegRange(0xC550, 0xC550)),
-    ModbusRequest(devices.gridDevice, RegRange(0xC550, 0xC551)),
-    ModbusRequest(devices.gridDevice, RegRange(0xC550, 0xC552))
+    ModbusRequest(devices.gridDevice, RegRange(0xC550, 0xC58D)) // table 1
   )
 
   lazy private val handler = new ModbusRequestHandler(
