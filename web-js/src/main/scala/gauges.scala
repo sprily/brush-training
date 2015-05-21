@@ -26,7 +26,13 @@ trait gauges {
           ^.svg.viewBox := "0 0 258.336 258.336",
           Face(),
           Layer1(),
-          dial(gauge.majorTicks, gauge.minorTicks, gauge.minValue, gauge.maxValue)
+          dial(gauge.majorTicks, gauge.minorTicks, gauge.minValue, gauge.maxValue),
+          Arm(),
+          Frame(),
+          ArmLid(),
+          InnerShadow(),
+          Layer9(),
+          OuterFrame()
         )
       )
     }
@@ -93,6 +99,88 @@ trait gauges {
           ^.svg.fontSize := "20",
           "1,023"
         )
+      )
+    }
+    .buildU
+
+  val Arm = ReactComponentB[Unit]("Arm")
+    .render { _ =>
+      <.svg.g(
+        ^.svg.id := "arm",
+        //transform="rotate(-10, 190.936 190.936)">
+        <.svg.path(
+          ^.svg.d := "M216.442,190.926c0-14.114-11.441-25.556-25.556-25.556c-4.912,0-9.499,1.389-13.394,3.791L84.721,84.007l-9.089-9.089 l-0.356,0.357l133.701,133.702C213.59,204.354,216.442,197.973,216.442,190.926z"
+        ),
+        <.svg.path(
+          ^.svg.fill := "#1E1E1E",
+          ^.svg.d := "M75.275,75.275l-0.351,0.35l9.071,9.071l85.115,92.852c-2.396,3.892-3.78,8.473-3.78,13.378 c0,14.114,11.441,25.556,25.556,25.556c7.067,0,13.464-2.869,18.09-7.505L75.275,75.275z"
+        ),
+        <.svg.line(
+          ^.svg.fill := "none",
+          ^.svg.stroke := "#464646",
+          ^.svg.strokeWidth := "0.5",
+          ^.svg.strokeMiterlimit := "10",
+          ^.svg.x1 := "181.681",
+          ^.svg.y1 := "181.681",
+          ^.svg.x2 := "75.278",
+          ^.svg.y2 := "75.271"
+        )
+      )
+    }
+    .buildU
+
+  val Frame = ReactComponentB[Unit]("Frame")
+    .render { _ =>
+      <.svg.g( ^.svg.id := "frame",
+        <.svg.g(
+          <.svg.polygon( ^.svg.fill := "#E9E4ED", ^.svg.points := "234.345,23.991 248.336,10 10,10 23.991,23.991"),
+          <.svg.polygon( ^.svg.fill := "#BCBBC3", ^.svg.points := "23.991,23.991 10,10 10,248.336 23.991,234.345"),
+          <.svg.polygon( ^.svg.fill := "#F3EEF3", ^.svg.points := "23.991,234.345 10,248.336 248.336,248.336 234.345,234.345"),
+          <.svg.polygon( ^.svg.fill := "#FBF6FB", ^.svg.points := "234.345,23.991 234.345,234.345 248.336,248.336 248.336,10")
+          )
+        )
+    }.buildU
+
+  val ArmLid = ReactComponentB[Unit]("ArmLid")
+    .render { _ =>
+      <.svg.g( ^.svg.id := "arm_lid",
+        <.svg.path( ^.svg.fill := "#F2EDF2", ^.svg.d := "M181.681,181.681l52.663,52.664h0.001v-77.876c-13.22,0-25.667,3.298-36.572,9.11L181.681,181.681z"),
+        <.svg.path( ^.svg.fill := "#F2EDF2", ^.svg.d := "M165.556,197.816c-5.797,10.895-9.086,23.326-9.086,36.528h77.875l-52.663-52.664L165.556,197.816z"),
+        <.svg.path( ^.svg.fill := "#F6F2F7", ^.svg.d := "M234.345,147.502c-14.742,0-28.623,3.678-40.783,10.159l4.211,7.918 c10.905-5.812,23.353-9.11,36.572-9.11V147.502z"),
+        <.svg.path( ^.svg.fill := "#F7F2F7", ^.svg.d := "M157.635,193.61c-6.465,12.149-10.133,26.013-10.133,40.734h8.967c0-13.202,3.289-25.634,9.086-36.528 L157.635,193.61z")
+      )
+    }
+    .buildU
+
+  val InnerShadow = ReactComponentB[Unit]("InnerShadow")
+    .render { _ =>
+      <.svg.g(
+        ^.svg.id := "inner_shadow",
+        <.svg.polygon(
+          ^.svg.fill := "#F5F5F5",
+          ^.svg.points := "234.345,34.46 234.345,23.991 23.991,23.991 23.991,234.345 34.46,234.345 34.46,34.46"
+        )
+      )
+    }
+    .buildU
+
+  val Layer9 = ReactComponentB[Unit]("Layer9")
+    .render { _ =>
+      <.svg.g( ^.svg.id := "Layer_9",
+        <.svg.radialgradient( ^.svg.id := "SVGID_2_", ^.svg.cx := "129.168", ^.svg.cy := "129.168", ^.svg.r := "169.2006", ^.svg.gradientUnits := "userSpaceOnUse",
+          <.svg.stop(^.svg.offset := "0", ^.svg.stopColor := "#FFFFFF", ^.svg.stopOpacity := 0),
+          <.svg.stop(^.svg.offset := "0.9725", ^.svg.stopColor := "#292526", ^.svg.stopOpacity := 0.1167),
+          <.svg.stop(^.svg.offset := "1", ^.svg.stopColor := "#000000", ^.svg.stopOpacity := 0.12)
+        ),
+        <.svg.polygon(^.svg.fill := "url(#SVGID_2_)", ^.svg.points := "248.336,248.336 10,10 248.336,10")
+      )
+    }
+    .buildU
+
+  val OuterFrame = ReactComponentB[Unit]("OuterFrame")
+    .render { _ =>
+      <.svg.g(^.svg.id := "outer_frame",
+        <.svg.path(^.svg.d := "M248.336,10v238.336H10V10H248.336 M258.336,0h-10H10H0v10v238.336v10h10h238.336h10v-10V10V0L258.336,0z")
       )
     }
     .buildU
@@ -183,15 +271,6 @@ trait gauges {
         }}
       )
 
-      //  <text transform="matrix(1 0 0 1 52.5288 196.9092)" fill="#666666" font-family="'BebasNeueBold'" font-size="16.919">@tickLabel(rangeMin)</text>
-      //  <text transform="matrix(1 0 0 1 83.8057 107.2637)" font-family="'BebasNeueBold'" font-size="24.919">@tickLabel(((rangeMax-rangeMin) / 2.0) + rangeMin)</text>
-      //  <text transform="matrix(1 0 0 1 182.6504 66.2188)" fill="#666666" font-family="'BebasNeueBold'" font-size="16.919">@tickLabel(rangeMax)</text>
-      //  <text transform="matrix(1 0 0 1 145.8237 71.5547)" fill="#666666" font-family="'BebasNeueBold'" font-size="16.919">@tickLabel(((rangeMax-rangeMin) / 6.0 * 5.0) + rangeMin)</text>
-      //  <text transform="matrix(1 0 0 1 60.0923 163.3389)" fill="#666666" font-family="'BebasNeueBold'" font-size="16.919">@tickLabel(((rangeMax-rangeMin) / 6.0) + rangeMin)</text>
-      //  <text transform="matrix(1 0 0 1 72.0459 132.3086)" fill="#666666" font-family="'BebasNeueBold'" font-size="16.919">@tickLabel(((rangeMax-rangeMin) / 3.0) + rangeMin)</text>
-      //  <g>
-      //    <text transform="matrix(1 0 0 1 118.5869 85.5166)" fill="#666666" font-family="'BebasNeueBold'" font-size="16.919">@tickLabel(((rangeMax-rangeMin) / 6.0 * 4.0) + rangeMin)</text>
-      //  </g>
     )
   }
 
