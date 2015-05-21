@@ -76,25 +76,6 @@ trait gauges {
       <.svg.g(
         ^.svg.id := "Layer_1",
 
-        // Defines the fill for the meter's arm and ball
-        <.svg.radialgradient(
-          ^.svg.id := "SVGID_1_",
-          ^.svg.cx := "144.686",
-          ^.svg.cy := "146.7139",
-          ^.svg.r := "70.7689",
-          ^.svg.gradientUnits := "userSpaceOnUse",
-          <.svg.stop(^.svg.offset := "0", ^.svg.stopColor := "#FFFFFF", ^.svg.stopOpacity := "0"),
-          <.svg.stop(^.svg.offset := "0.9725", ^.svg.stopColor := "#292526", ^.svg.stopOpacity := "0.1167"),
-          <.svg.stop(^.svg.offset := "1", ^.svg.stopColor := "#000000", ^.svg.stopOpacity := "0.12")
-        ),
-
-        // The following path is the arm and "ball" of the meter, it's fill is the 
-        // gradient defined above
-        // TODO: do we really need the above gradient defined, as the arm and ball are black, and so maybe are being overwritten later.
-        <.svg.path(
-          ^.svg.fill := "url(#SVGID_1_)",
-          ^.svg.d := "M190.44,165.374c-4.911,0.085-9.474,1.554-13.325,4.024L82.871,85.876l-9.246-8.93l-0.351,0.363 l-0.345,0.356l9.229,8.911l86.723,91.352c-2.327,3.933-3.632,8.537-3.546,13.441c0.246,14.113,11.886,25.353,25.998,25.106 c7.066-0.124,13.411-3.104,17.955-7.819c4.532-4.703,7.273-11.133,7.15-18.179C216.192,176.367,204.553,165.127,190.44,165.374z"
-        ),
         <.svg.text(
           ^.svg.transform := "matrix(1 0 0 1 36.1465 52.4482)",
           ^.svg.fontFamily := "'BebasNeueBold'",
@@ -124,6 +105,26 @@ trait gauges {
   val Arm = ReactComponentB[Degrees]("Arm")
     .render { theta =>
       <.svg.g(
+
+        // Defines the fill for the meter's arm and ball
+        <.svg.radialgradient(
+          ^.svg.id := "SVGID_1_",
+          ^.svg.cx := "144.686",
+          ^.svg.cy := "146.7139",
+          ^.svg.r := "70.7689",
+          ^.svg.gradientUnits := "userSpaceOnUse",
+          <.svg.stop(^.svg.offset := "0", ^.svg.stopColor := "#FFFFFF", ^.svg.stopOpacity := "0"),
+          <.svg.stop(^.svg.offset := "0.9725", ^.svg.stopColor := "#292526", ^.svg.stopOpacity := "0.1167"),
+          <.svg.stop(^.svg.offset := "1", ^.svg.stopColor := "#000000", ^.svg.stopOpacity := "0.12")
+        ),
+
+        // The following path is the arm and "ball" of the meter, it's fill is the 
+        // gradient defined above
+        // TODO: do we really need the above gradient defined, as the arm and ball are black, and so maybe are being overwritten later.
+        <.svg.path(
+          ^.svg.fill := "url(#SVGID_1_)",
+          ^.svg.d := "M190.44,165.374c-4.911,0.085-9.474,1.554-13.325,4.024L82.871,85.876l-9.246-8.93l-0.351,0.363 l-0.345,0.356l9.229,8.911l86.723,91.352c-2.327,3.933-3.632,8.537-3.546,13.441c0.246,14.113,11.886,25.353,25.998,25.106 c7.066-0.124,13.411-3.104,17.955-7.819c4.532-4.703,7.273-11.133,7.15-18.179C216.192,176.367,204.553,165.127,190.44,165.374z"
+        ),
         ^.svg.id := "arm",
         ^.svg.transform := s"rotate($theta, 190.936, 190.936)",
         <.svg.path(
