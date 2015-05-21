@@ -40,7 +40,7 @@ trait gauges {
             ^.svg.y := "0px",
             ^.svg.viewBox := "0 0 258.336 258.336",
             Face(),
-            Layer1(),
+            Layer1(gauge.config),
             Dial(gauge.layout),
             Arm(gauge.layout.degrees(gauge.config.scale(data))),
             Frame(),
@@ -71,16 +71,16 @@ trait gauges {
     .shouldComponentUpdate { case _ => false }
     .buildU
 
-  val Layer1 = ReactComponentB[Unit]("Layer1")
-    .render { _ =>
+  val Layer1 = ReactComponentB[DataConfig]("Layer1")
+    .render { config =>
       <.svg.g(
         ^.svg.id := "Layer_1",
 
         <.svg.text(
           ^.svg.transform := "matrix(1 0 0 1 36.1465 52.4482)",
           ^.svg.fontFamily := "'BebasNeueBold'",
-          ^.svg.fontSize := "24.919", "V"
-          //^.svg.fontSize := "24.919", "@(device.unitLabelFor(regAddr))"
+          ^.svg.fontSize := "24.919",
+          config.unitLabel
         ),
 
         // TODO the following seems redundant
@@ -100,7 +100,7 @@ trait gauges {
       )
     }
     .shouldComponentUpdate { case _ => false }
-    .buildU
+    .build
 
   val Arm = ReactComponentB[Degrees]("Arm")
     .render { theta =>
