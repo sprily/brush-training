@@ -25,21 +25,48 @@ object Test extends js.JSApp with gauges {
     }
 
     private def update(msg: String) = $.modState(s =>
-      State(connected=true,
-            latest=(msg +: s.latest).slice(0,10),
-            count = s.count+1)
+      s.copy(connected=true,
+             latest=(msg +: s.latest).slice(0,10),
+             count = s.count+1)
     )
   }
 
-  case class State(connected: Boolean, latest: IndexedSeq[String], count: Int) {
+  case class GaugePanel(
+    current: Gauge, power: Gauge,
+    mvars: Gauge,   pf: Gauge,
+    voltage: Gauge, frequency: Gauge)
+
+  object GaugePanel {
+
+    def grid      = GaugePanel(current, power, mvars, pf, voltage, frequency)
+    def generator = GaugePanel(current, power, mvars, pf, voltage, frequency)
+
+    def current   = std("A",     0, 120)
+    def power     = std("kW",    0, 40)
+    def mvars     = std("kVAr",  0, 40)
+    def pf        = std("",      0, 1)
+    def voltage   = std("V",     0, 500)
+    def frequency = std("Hz",   30, 70)
+
+    private def std(label: String, min: Double, max: Double, scaleBy: Double = 1.0) = Gauge(
+      GaugeLayout(2, 4, min, max),
+      DataConfig(label, scaleBy))
+  }
+
+  case class Instruments(grid: GaugePanel, generator: GaugePanel)
+
+  case class State(connected: Boolean, latest: IndexedSeq[String], count: Int, instruments: Instruments) {
     def gaugeText = connected match {
       case false => "connecting"
       case true  => "connected"
     }
   }
+  object Instruments {
+    def init = Instruments(GaugePanel.grid, GaugePanel.generator)
+  }
 
   object State {
-    def init = State(connected=false, latest=Vector.empty, count=0)
+    def init = State(connected=false, latest=Vector.empty, count=0, instruments=Instruments.init)
   }
 
   val Dashboard = ReactComponentB[Unit]("Dashboard")
@@ -48,12 +75,21 @@ object Test extends js.JSApp with gauges {
     .renderS(($,_,S) => S.connected match {
       case false => <.div(
         <.p("Connecting to server..."),
-        corner(Gauge(2,4,0.0, 6.0))
+        corner((S.instruments.grid.current, 0.0)),
+        corner((S.instruments.grid.power, 0.0)),
+        corner((S.instruments.grid.mvars, 0.0)),
+        corner((S.instruments.grid.pf, 0.0)),
+        corner((S.instruments.grid.voltage, 0.0)),
+        corner((S.instruments.grid.frequency, 0.0))
       )
       case true  => <.div(
         <.div(S.count),
-        //corner(Gauge(S.count,4,0.0,S.count*20.0)),
-        corner(Gauge(2,4,0.0, 6.0)),
+        corner((S.instruments.grid.current, S.count)),
+        corner((S.instruments.grid.power, S.count)),
+        corner((S.instruments.grid.mvars, S.count)),
+        corner((S.instruments.grid.pf, S.count)),
+        corner((S.instruments.grid.voltage, S.count)),
+        corner((S.instruments.grid.frequency, S.count)),
         S.latest.map(<.p(_))
       )
     })
