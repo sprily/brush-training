@@ -10,7 +10,7 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExport
 import org.scalajs.dom
 
-object Test extends js.JSApp {
+object Test extends js.JSApp with gauges {
 
   class Backend($: BackendScope[Unit, State]) {
 
@@ -26,58 +26,39 @@ object Test extends js.JSApp {
 
     private def update(msg: String) = $.modState(s =>
       State(connected=true,
-            latest=(msg +: s.latest).slice(0,10))
+            latest=(msg +: s.latest).slice(0,10),
+            count = s.count+1)
     )
   }
 
-  case class State(connected: Boolean, latest: IndexedSeq[String])
+  case class State(connected: Boolean, latest: IndexedSeq[String], count: Int) {
+    def gaugeText = connected match {
+      case false => "connecting"
+      case true  => "connected"
+    }
+  }
+
   object State {
-    def init = State(connected=false, latest=Vector.empty)
+    def init = State(connected=false, latest=Vector.empty, count=0)
   }
 
   val Dashboard = ReactComponentB[Unit]("Dashboard")
     .initialState(State.init)
     .backend(new Backend(_))
     .renderS(($,_,S) => S.connected match {
-      case false => <.p("Connecting to server...")
-      case true  => <.div(S.latest.map(<.p(_)))
+      case false => <.div(
+        <.p("Connecting to server..."),
+        corner(Gauge(2,4,0.0, 6.0))
+      )
+      case true  => <.div(
+        <.div(S.count),
+        //corner(Gauge(S.count,4,0.0,S.count*20.0)),
+        corner(Gauge(2,4,0.0, 6.0)),
+        S.latest.map(<.p(_))
+      )
     })
     .componentDidMount(_.backend.start())
     .buildU
-
-
-  //val Measurements = ReactComponentB[Measurement]("Measurements")
-  //  .render(ms => {
-  //    <.div(
-  //      <.p(
-  //        <.em("Current: "),
-  //        ms.current),
-  //      <.p(
-  //        <.em("Voltage: "),
-  //        ms.voltage)
-  //      )
-  //  })
-  //  .build
-
-  
-  //val ST = ReactS.Fix[State]
-
-  //def handleSubmit(e: ReactEventI) = (
-  //  ST.retM(e.preventDefaultIO)
-  //  >> ST.mod(s => State(s.t + 1, s.ms.copy(s.ms.current+10, s.ms.voltage+5))).liftIO
-  //)
-
-  //val App = ReactComponentB[Unit]("App")
-  //  .initialState(State(0, Measurement(100, 200)))
-  //  .renderS(($,_,S) =>
-  //    <.div(
-  //      <.h2("T" + S.t),
-  //      Measurements(S.ms),
-  //      <.form(^.onSubmit ~~> $._runState(handleSubmit))(
-  //        <.button("Up!")
-  //      )
-  //    )
-  //  ).buildU
 
   val mountNode = dom.document.getElementById("main-app")
 
