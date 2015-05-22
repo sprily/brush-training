@@ -33,6 +33,17 @@ trait gauges {
 
   case class Gauge(layout: GaugeLayout, config: DataConfig)
 
+
+  // Fixed layout for Power Factor Gauge
+  case object PFGauge {
+    def config = DataConfig("cos φ", 1.0)
+    def layout = GaugeLayout(majorTicks =  3,
+                             minorTicks =  1,
+                             minValue   =  0.2,
+                             maxValue   =  1.0,
+                             precision  =  1)
+  }
+
   object Gauge {
     def apply(label: String,
               min: Double,
@@ -45,6 +56,31 @@ trait gauges {
       DataConfig(label, scaleBy)
     )
   }
+
+  val powerFactor = ReactComponentB[(PFGauge.type,Double)]("PFGauge")
+    .render { S => {
+      val (gauge, data) = S
+        <.div(
+          <.svg.svg(
+            ^.svg.x := "0px",
+            ^.svg.y := "0px",
+            ^.svg.viewBox := "0 0 258.336 258.336",
+            Face(),
+            UnitLabel(gauge.config),
+            Dial(gauge.layout),
+            PFDialLabels(gauge.layout),
+            Arm(gauge.layout.degrees(gauge.config.scale(data))),
+            Frame(),
+            ArmLid(),
+            InnerShadow(),
+            Layer9(),
+            OuterFrame()
+          )
+        )
+      }
+    }
+    .shouldComponentUpdate { case (self,gauge,_) => gauge != self.props }
+    .build
 
   val corner = ReactComponentB[(Gauge,Double)]("Gauge")
     .render { S => {
@@ -232,30 +268,16 @@ trait gauges {
     case object ShortTick extends TickLength { def radius = minorRadius }
 
     def tick(width: Double, length: TickLength)(cosTheta: Double, sinTheta: Double) =
-      <.svg.line(^.svg.fill := "none", ^.svg.stroke := "#000000", ^.svg.strokeWidth := width, ^.svg.strokeMiterlimit := "10",
-                 ^.svg.x1 := padding.x + radius*(1.0-cosTheta), ^.svg.x2 := padding.x + radius - length.radius*(cosTheta),
-                 ^.svg.y1 := padding.y + radius*(1.0-sinTheta), ^.svg.y2 := padding.y + radius - length.radius*(sinTheta)
+      <.svg.line(
+        ^.svg.fill := "none", ^.svg.stroke := "#000000", ^.svg.strokeWidth := width, ^.svg.strokeMiterlimit := "10",
+        ^.svg.x1 := padding.x + radius*(1.0-cosTheta), ^.svg.x2 := padding.x + radius - length.radius*(cosTheta),
+        ^.svg.y1 := padding.y + radius*(1.0-sinTheta), ^.svg.y2 := padding.y + radius - length.radius*(sinTheta)
       )
 
-  }
-
-  val DialLabels = ReactComponentB[GaugeLayout]("DialLabels")
-    .render { layout => {
-      import GaugeStyle._
-
-      val major = layout.majorTicks
-      val minValue = layout.minValue
-      val maxValue = layout.maxValue
-
-      val majorTicks = 2*major + 2
-      val majorMiddleIdx = (majorTicks+1)/2
-
-      val labels = (0 to majorTicks).map { i => minValue + ((maxValue - minValue) / majorTicks * i) }
-                                    .map { v => s"%-,.${layout.precision}f".format(v) }
-      val majorAngles = angles(majorTicks)
-
+    def dialLabels(labels: IndexedSeq[String]) = {
+      val majorAngles = angles(labels.length - 1)
+      val majorMiddleIdx = labels.length / 2
       <.svg.g(
-        ^.svg.id := "major-labels",
         labels.zip(majorAngles).zipWithIndex.map { case ((l, (cosTheta, sinTheta)), idx) => {
           val fontSize = if (idx == majorMiddleIdx) largeFont else regFont
           <.svg.text(
@@ -268,6 +290,45 @@ trait gauges {
           )
         }}
       )
+    }
+
+  }
+
+  val DialLabels = ReactComponentB[GaugeLayout]("DialLabels")
+    .render { layout => {
+      import GaugeStyle._
+
+      val major = layout.majorTicks
+      val minValue = layout.minValue
+      val maxValue = layout.maxValue
+      val majorTicks = 2*major + 2
+
+      val labels = (0 to majorTicks).map { i => minValue + ((maxValue - minValue) / majorTicks * i) }
+                                    .map { v => s"%-,.${layout.precision}f".format(v) }
+
+      dialLabels(labels)
+
+    }}
+    .shouldComponentUpdate { case (self,layout,_) => layout != self.props }
+    .build
+
+  val PFDialLabels = ReactComponentB[GaugeLayout]("PFDialLabels")
+    .render { layout => {
+      import GaugeStyle._
+
+      val major = layout.majorTicks
+      val minValue = layout.minValue
+      val maxValue = layout.maxValue
+
+      val values = 
+        (0 to major).map { i => minValue + ((maxValue - minValue) / (major+1) * i) }
+
+      val labels = (
+        values ++ Seq(maxValue) ++ values.reverse
+      ).map { v => s"%-,.${layout.precision}f".format(v) }
+
+      dialLabels(labels)
+
     }}
     .shouldComponentUpdate { case (self,layout,_) => layout != self.props }
     .build

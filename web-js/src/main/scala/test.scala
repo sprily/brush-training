@@ -35,7 +35,7 @@ object Test extends js.JSApp with gauges {
 
   case class GaugePanel(
     current: Gauge, power: Gauge,
-    mvars: Gauge,   pf: Gauge,
+    mvars: Gauge,   pf: PFGauge.type,
     voltage: Gauge, frequency: Gauge)
 
   object GaugePanel {
@@ -46,7 +46,7 @@ object Test extends js.JSApp with gauges {
     def current   = Gauge("A",      0, 120)
     def power     = Gauge("MW",     0, 5)   // TODO
     def mvars     = Gauge("MVAr",  -5, 5, majorTicks=4)
-    def pf        = Gauge("cos φ", -1, 1, majorTicks=2, precision=2)  // TODO
+    def pf        = PFGauge
     def voltage   = Gauge("kV",     0, 15)  // TODO
     def frequency = Gauge("Hz",    30, 70, majorTicks=1)
 
@@ -68,6 +68,26 @@ object Test extends js.JSApp with gauges {
     def init = State(connected=false, latest=Vector.empty, count=0, instruments=Instruments.init)
   }
 
+  val Panel = ReactComponentB[(GaugePanel,Double)]("Panel")
+    .render { S => {
+      val (panel, value) = S
+      <.div(
+        <.div(grid.row,
+          <.div(grid.col(6), corner((panel.current,   value))),
+          <.div(grid.col(6), corner((panel.power,     value)))
+        ),
+        <.div(grid.row,
+          <.div(grid.col(6), corner((panel.mvars,     value))),
+          <.div(grid.col(6), powerFactor((panel.pf,   value)))
+        ),
+        <.div(grid.row,
+          <.div(grid.col(6), corner((panel.voltage,   value))),
+          <.div(grid.col(6), corner((panel.frequency, value)))
+        )
+      )
+    }}
+    .build
+
   val Dashboard = ReactComponentB[Unit]("Dashboard")
     .initialState(State.init)
     .backend(new Backend(_))
@@ -80,36 +100,14 @@ object Test extends js.JSApp with gauges {
 
         <.div(
           grid.col(4),
-          <.div(grid.row,
-            <.div(grid.col(6), corner((S.instruments.grid.current,   S.count))),
-            <.div(grid.col(6), corner((S.instruments.grid.power,     S.count)))
-          ),
-          <.div(grid.row,
-            <.div(grid.col(6), corner((S.instruments.grid.mvars,     S.count))),
-            <.div(grid.col(6), corner((S.instruments.grid.pf,        S.count)))
-          ),
-          <.div(grid.row,
-            <.div(grid.col(6), corner((S.instruments.grid.voltage,   S.count))),
-            <.div(grid.col(6), corner((S.instruments.grid.frequency, S.count)))
-          )
+          Panel((S.instruments.grid, S.count))
         ),
 
         <.div(grid.col(4)),
 
         <.div(
           grid.col(4),
-          <.div(grid.row,
-            <.div(grid.col(6), corner((S.instruments.generator.current,   S.count))),
-            <.div(grid.col(6), corner((S.instruments.generator.power,     S.count)))
-          ),
-          <.div(grid.row,
-            <.div(grid.col(6), corner((S.instruments.generator.mvars,     S.count))),
-            <.div(grid.col(6), corner((S.instruments.generator.pf,        S.count)))
-          ),
-          <.div(grid.row,
-            <.div(grid.col(6), corner((S.instruments.generator.voltage,   S.count))),
-            <.div(grid.col(6), corner((S.instruments.generator.frequency, S.count)))
-          )
+          Panel((S.instruments.generator, S.count))
         )
       )
     })
