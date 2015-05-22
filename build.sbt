@@ -38,34 +38,6 @@ lazy val commonDependencies = Seq(
   "org.specs2"                  %% "specs2-junit"         % "3.6"         % "test"
 )
 
-//lazy val web = (project in file("web")).
-//  settings(commonSettingsWithDeps: _*).
-//  settings(
-//
-//    // An attempt to prevent the root project's propogation of the debian:packageBin
-//    // Task from building the web sub-project.  The reason it does is because web
-//    // enables the Play plugin, which must auto-enable the native packager, but attempts
-//    // to disable it again don't work.  So this workaround is to hard-code the Task itself
-//    // to not do anything useful.  There's a SO question on a similar problem, with no
-//    // solution yet:
-//    //
-//    // http://stackoverflow.com/questions/28948964/dont-publish-a-docker-image-for-each-sbt-subproject
-//    packageBin in Debian := file(""),
-//
-//    scalaJSProjects := Seq(webJS),
-//    pipelineStages := Seq(scalaJSProd),
-//    libraryDependencies ++= Seq(
-//      "com.vmunier"           %% "play-scalajs-scripts" % "0.2.1",
-//      "org.scalaz.stream"     %% "scalaz-stream"        % "0.7a",
-//      "uk.co.sprily"          %% "dh-modbus"            % "0.1.1",
-//      "uk.co.sprily"          %% "scala-mqtt-core"      % "0.1.3",
-//      "org.webjars"            % "bootstrap"            % "3.3.4"
-//    )
-//  ).
-//  enablePlugins(PlayScala).
-//  dependsOn(webSharedJvm).
-//  aggregate(Seq(webJS).map(projectToRef):_*)
-
 lazy val webJS = (project in file("web-js")).
   settings(commonSettingsWithDeps: _*).
   settings(
