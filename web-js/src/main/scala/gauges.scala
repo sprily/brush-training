@@ -217,7 +217,8 @@ trait gauges {
         <.svg.polygon(
           ^.svg.fill := "#F5F5F5",
           ^.svg.points := "234.345,34.46 234.345,23.991 23.991,23.991 23.991,234.345 34.46,234.345 34.46,34.46"
-        )
+        ),
+        ^.svg.opacity := 0.3
       )
     }
     .shouldComponentUpdate { case _ => false }
