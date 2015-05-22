@@ -43,16 +43,13 @@ object Test extends js.JSApp with gauges {
     def grid      = GaugePanel(current, power, mvars, pf, voltage, frequency)
     def generator = GaugePanel(current, power, mvars, pf, voltage, frequency)
 
-    def current   = std("A",     0, 120)
-    def power     = std("kW",    0, 40)
-    def mvars     = std("kVAr",  0, 40)
-    def pf        = std("",      0, 1)
-    def voltage   = std("V",     0, 500)
-    def frequency = std("Hz",   30, 70)
+    def current   = Gauge("A",      0, 120)
+    def power     = Gauge("MW",     0, 5)   // TODO
+    def mvars     = Gauge("MVAr",  -5, 5, majorTicks=4)
+    def pf        = Gauge("cos φ", -1, 1, majorTicks=2, precision=2)  // TODO
+    def voltage   = Gauge("kV",     0, 15)  // TODO
+    def frequency = Gauge("Hz",    30, 70, majorTicks=1)
 
-    private def std(label: String, min: Double, max: Double, scaleBy: Double = 1.0) = Gauge(
-      GaugeLayout(2, 4, min, max),
-      DataConfig(label, scaleBy))
   }
 
   case class Instruments(grid: GaugePanel, generator: GaugePanel)

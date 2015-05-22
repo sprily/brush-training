@@ -18,7 +18,8 @@ trait gauges {
 
   case class GaugeLayout(
       majorTicks: Int, minorTicks: Int,
-      minValue: Double, maxValue: Double) {
+      minValue: Double, maxValue: Double,
+      precision: Int) {
 
     def degrees(scaled: Double) = {
       (Math.max(Math.min(scaled, maxValue), minValue) - minValue) / (maxValue - minValue) * 90.0 - 45.0
@@ -31,6 +32,19 @@ trait gauges {
   }
 
   case class Gauge(layout: GaugeLayout, config: DataConfig)
+
+  object Gauge {
+    def apply(label: String,
+              min: Double,
+              max: Double,
+              majorTicks: Int = 2,
+              minorTicks: Int = 4,
+              precision: Int = 0,
+              scaleBy: Double = 1.0) = new Gauge(
+      GaugeLayout(majorTicks, minorTicks, min, max, precision),
+      DataConfig(label, scaleBy)
+    )
+  }
 
   val corner = ReactComponentB[(Gauge,Double)]("Gauge")
     .render { S => {
@@ -246,7 +260,7 @@ trait gauges {
                                          .map { theta => (Math.cos(theta), Math.sin(theta)) }
 
       val labels = (0 to majorTicks).map { i => minValue + ((maxValue - minValue) / (majorTicks) * i) }
-                                    .map { v => "%-,.0f".format(v) }
+                                    .map { v => s"%-,.${layout.precision}f".format(v) }
 
       val regFont = 16.919
       val largeFont = 24.919
