@@ -57,6 +57,7 @@ trait gauges {
             Face(),
             UnitLabel(gauge.config),
             Dial(gauge.layout),
+            DialLabels(gauge.layout),
             Arm(gauge.layout.degrees(gauge.config.scale(data))),
             Frame(),
             ArmLid(),
@@ -209,7 +210,67 @@ trait gauges {
     .shouldComponentUpdate { case _ => false }
     .buildU
 
-  case class P(x: Double, y: Double)
+  object GaugeStyle {
+
+    case class P(x: Double, y: Double)
+
+    val padding = P(27.368, 27.368)
+    val minorTickLength = 12.063
+    val majorTickLength = minorTickLength + 9.167
+    val radius = 163.555
+    val majorRadius = radius - majorTickLength
+    val minorRadius = radius - minorTickLength
+    val regFont = 16.919
+    val largeFont = 24.919
+
+    def angles(ticks: Int) =
+      (0 to ticks).map { i => (Math.PI * i.toDouble) / (2.0 * ticks) }
+                  .map { theta => (Math.cos(theta), Math.sin(theta)) }
+
+    sealed trait TickLength { def radius: Double }
+    case object LongTick extends TickLength { def radius = majorRadius }
+    case object ShortTick extends TickLength { def radius = minorRadius }
+
+    def tick(width: Double, length: TickLength)(cosTheta: Double, sinTheta: Double) =
+      <.svg.line(^.svg.fill := "none", ^.svg.stroke := "#000000", ^.svg.strokeWidth := width, ^.svg.strokeMiterlimit := "10",
+                 ^.svg.x1 := padding.x + radius*(1.0-cosTheta), ^.svg.x2 := padding.x + radius - length.radius*(cosTheta),
+                 ^.svg.y1 := padding.y + radius*(1.0-sinTheta), ^.svg.y2 := padding.y + radius - length.radius*(sinTheta)
+      )
+
+  }
+
+  val DialLabels = ReactComponentB[GaugeLayout]("DialLabels")
+    .render { layout => {
+      import GaugeStyle._
+
+      val major = layout.majorTicks
+      val minValue = layout.minValue
+      val maxValue = layout.maxValue
+
+      val majorTicks = 2*major + 2
+      val majorMiddleIdx = (majorTicks+1)/2
+
+      val labels = (0 to majorTicks).map { i => minValue + ((maxValue - minValue) / majorTicks * i) }
+                                    .map { v => s"%-,.${layout.precision}f".format(v) }
+      val majorAngles = angles(majorTicks)
+
+      <.svg.g(
+        ^.svg.id := "major-labels",
+        labels.zip(majorAngles).zipWithIndex.map { case ((l, (cosTheta, sinTheta)), idx) => {
+          val fontSize = if (idx == majorMiddleIdx) largeFont else regFont
+          <.svg.text(
+            ^.svg.fill := "#666666",
+            ^.svg.fontFamily := "BebasNeueBold",
+            ^.svg.fontSize := fontSize,
+            ^.svg.x := padding.x + radius - (majorRadius)*cosTheta - (fontSize/4.0)*sinTheta,
+            ^.svg.y := padding.y + radius + fontSize/3.0 - (majorRadius - fontSize/2.0)*sinTheta,
+            l
+          )
+        }}
+      )
+    }}
+    .shouldComponentUpdate { case (self,layout,_) => layout != self.props }
+    .build
 
   /** Draws the tick marks
     *
@@ -222,17 +283,12 @@ trait gauges {
     */
   val Dial = ReactComponentB[GaugeLayout]("Dial")
     .render { layout => {
+      import GaugeStyle._
+
       val major = layout.majorTicks
       val minor = layout.minorTicks
       val minValue = layout.minValue
       val maxValue = layout.maxValue
-
-      val padding = P(27.368, 27.368)
-      val minorTickLength = 12.063
-      val majorTickLength = minorTickLength + 9.167
-      val radius = 163.555
-      val minorRadius = radius - minorTickLength
-      val majorRadius = radius - majorTickLength
 
       val majorTicks = 2*major + 2
       val minorTicks = majorTicks * (minor+1)
@@ -240,64 +296,28 @@ trait gauges {
       val minorAngles = (0 to minorTicks).map { i => (Math.PI * i.toDouble) / (2.0 * minorTicks) }
                                          .map { theta => (Math.cos(theta), Math.sin(theta)) }
 
-      val majorAngles = (0 to majorTicks).map { i => (Math.PI * i.toDouble) / (2.0 * majorTicks) }
-                                         .map { theta => (Math.cos(theta), Math.sin(theta)) }
+      val majorAngles = angles(majorTicks)
 
-      val labels = (0 to majorTicks).map { i => minValue + ((maxValue - minValue) / (majorTicks) * i) }
-                                    .map { v => s"%-,.${layout.precision}f".format(v) }
-
-      val regFont = 16.919
-      val largeFont = 24.919
+      val minorTick      = (tick(0.25, ShortTick) _).tupled
+      val majorLongTick  = (tick(0.5,  LongTick) _).tupled
+      val majorShortTick = (tick(2,    ShortTick) _).tupled
 
       <.svg.g(
         ^.svg.id := "dial",
 
         <.svg.g(
           ^.svg.id := "minor",
-          minorAngles.map { case (cosTheta, sinTheta) =>
-            <.svg.line(^.svg.fill := "none", ^.svg.stroke := "#000000", ^.svg.strokeWidth := "0.25", ^.svg.strokeMiterlimit := "10",
-                       ^.svg.x1 := padding.x + radius*(1.0-cosTheta), ^.svg.x2 := padding.x + radius - minorRadius*(cosTheta),
-                       ^.svg.y1 := padding.y + radius*(1.0-sinTheta), ^.svg.y2 := padding.y + radius - minorRadius*(sinTheta)
-            )
-          }
+          minorAngles.map(minorTick)
         ),
 
         <.svg.g(
           ^.svg.id := "major-long",
-          majorAngles.map { case (cosTheta, sinTheta) =>
-            <.svg.line(^.svg.fill := "none", ^.svg.stroke := "#000000", ^.svg.strokeWidth := "0.5", ^.svg.strokeMiterlimit := "10",
-                       ^.svg.x1 := padding.x + radius*(1.0-cosTheta), ^.svg.x2 := padding.x + radius - majorRadius*(cosTheta),
-                       ^.svg.y1 := padding.y + radius*(1.0-sinTheta), ^.svg.y2 := padding.y + radius - majorRadius*(sinTheta)
-            )
-          }
+          majorAngles.map(majorLongTick)
         ),
 
         <.svg.g(
           ^.svg.id := "major-short",
-          majorAngles.zipWithIndex.filter(_._2 != majorMiddleIdx).map { case ((cosTheta, sinTheta), _) =>
-            <.svg.line(^.svg.fill := "none", ^.svg.stroke := "#000000", ^.svg.strokeWidth := "2", ^.svg.strokeMiterlimit := "10",
-                       ^.svg.x1 := padding.x + radius*(1.0-cosTheta), ^.svg.x2 := padding.x + radius - minorRadius*(cosTheta),
-                       ^.svg.y1 := padding.y + radius*(1.0-sinTheta), ^.svg.y2 := padding.y + radius - minorRadius*(sinTheta)
-            )
-          }
-        ),
-
-        <.svg.g(
-          ^.svg.id := "major-labels",
-          labels.zip(majorAngles).zipWithIndex.map { case ((l, (cosTheta, sinTheta)), idx) => {
-            val fontSize = if (idx == majorMiddleIdx) largeFont else regFont
-            //val t = new org.scalajs.dom.raw.SVGTransform()
-            //t.setTranslate(padding.x + majorRadius*(1.0-cosTheta), padding.y + majorRadius*(1.0-sinTheta))
-            println(l, cosTheta, sinTheta)
-            <.svg.text(
-              ^.svg.fill := "#666666",
-              ^.svg.fontFamily := "BebasNeueBold",
-              ^.svg.fontSize := fontSize,
-              ^.svg.x := padding.x + radius - (majorRadius)*cosTheta - (fontSize/4.0)*sinTheta,
-              ^.svg.y := padding.y + radius + fontSize/3.0 - (majorRadius - fontSize/2.0)*sinTheta,
-              l
-            )
-          }}
+          majorAngles.zipWithIndex.filter(_._2 != majorMiddleIdx).map(_._1).map(majorShortTick)
         )
 
       )
