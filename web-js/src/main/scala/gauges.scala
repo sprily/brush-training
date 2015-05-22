@@ -327,7 +327,27 @@ trait gauges {
         values ++ Seq(maxValue) ++ values.reverse
       ).map { v => s"%-,.${layout.precision}f".format(v) }
 
-      dialLabels(labels)
+      <.svg.g(
+        dialLabels(labels),
+
+        <.svg.text(
+          ^.svg.fill := "#666666",
+          ^.svg.fontFamily := "BebasNeueBold",
+          ^.svg.fontSize := regFont,
+          ^.svg.x := padding.x + radius - majorRadius + regFont*2,
+          ^.svg.y := padding.y + radius + regFont/3.0,
+          "Lag."
+        ),
+
+        <.svg.text(
+          ^.svg.fill := "#666666",
+          ^.svg.fontFamily := "BebasNeueBold",
+          ^.svg.fontSize := regFont,
+          ^.svg.x := padding.x + radius - regFont/4.0,
+          ^.svg.y := padding.y + radius + regFont/3.0 - majorRadius + regFont/2.0 + regFont*2,
+          "Lead."
+        )
+      )
 
     }}
     .shouldComponentUpdate { case (self,layout,_) => layout != self.props }
