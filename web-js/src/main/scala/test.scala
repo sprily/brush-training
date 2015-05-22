@@ -76,23 +76,44 @@ object Test extends js.JSApp with gauges {
     .backend(new Backend(_))
     .renderS(($,_,S) => S.connected match {
       case false => <.div(
-        <.p("Connecting to server..."),
-        corner((S.instruments.grid.current, 0.0)),
-        corner((S.instruments.grid.power, 0.0)),
-        corner((S.instruments.grid.mvars, 0.0)),
-        corner((S.instruments.grid.pf, 0.0)),
-        corner((S.instruments.grid.voltage, 0.0)),
-        corner((S.instruments.grid.frequency, 0.0))
+        grid.row,
+        <.p("Connecting to server...")
       )
-      case true  => <.div(
-        <.div(S.count),
-        corner((S.instruments.grid.current, S.count)),
-        corner((S.instruments.grid.power, S.count)),
-        corner((S.instruments.grid.mvars, S.count)),
-        corner((S.instruments.grid.pf, S.count)),
-        corner((S.instruments.grid.voltage, S.count)),
-        corner((S.instruments.grid.frequency, S.count)),
-        S.latest.map(<.p(_))
+      case true  => <.div(grid.row,
+
+        <.div(
+          grid.col(4),
+          <.div(grid.row,
+            <.div(grid.col(6), corner((S.instruments.grid.current,   S.count))),
+            <.div(grid.col(6), corner((S.instruments.grid.power,     S.count)))
+          ),
+          <.div(grid.row,
+            <.div(grid.col(6), corner((S.instruments.grid.mvars,     S.count))),
+            <.div(grid.col(6), corner((S.instruments.grid.pf,        S.count)))
+          ),
+          <.div(grid.row,
+            <.div(grid.col(6), corner((S.instruments.grid.voltage,   S.count))),
+            <.div(grid.col(6), corner((S.instruments.grid.frequency, S.count)))
+          )
+        ),
+
+        <.div(grid.col(4)),
+
+        <.div(
+          grid.col(4),
+          <.div(grid.row,
+            <.div(grid.col(6), corner((S.instruments.generator.current,   S.count))),
+            <.div(grid.col(6), corner((S.instruments.generator.power,     S.count)))
+          ),
+          <.div(grid.row,
+            <.div(grid.col(6), corner((S.instruments.generator.mvars,     S.count))),
+            <.div(grid.col(6), corner((S.instruments.generator.pf,        S.count)))
+          ),
+          <.div(grid.row,
+            <.div(grid.col(6), corner((S.instruments.generator.voltage,   S.count))),
+            <.div(grid.col(6), corner((S.instruments.generator.frequency, S.count)))
+          )
+        )
       )
     })
     .componentDidMount(_.backend.start())

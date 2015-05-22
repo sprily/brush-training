@@ -13,6 +13,18 @@ object GlobalStyles extends StyleSheet.Inline {
 
 }
 
+object grid extends StyleSheet.Inline {
+  import dsl._
+
+  val row = style(
+    addClassName("row")
+  )
+
+  val col = 
+    intStyle(1 to 12)(i => styleS(
+      addClassName(s"col-sm-$i")
+  ))
+}
 //class MaterialiseStyles(implicit r: mutable.Register) extends StyleSheet.Inline()(r) {
 //  import dsl._
 //

@@ -36,7 +36,6 @@ trait gauges {
     .render { S => {
       val (gauge, data) = S
         <.div(
-          ^.width := "50%", ^.height := "50%",
           <.svg.svg(
             ^.svg.x := "0px",
             ^.svg.y := "0px",
