@@ -129,7 +129,7 @@ trait gauges {
         ^.svg.id := "UnitLabel",
         <.svg.text(
           ^.svg.transform := "matrix(1 0 0 1 36.1465 52.4482)",
-          ^.svg.fontFamily := "'BebasNeueBold'",
+          ^.svg.fontFamily := GaugeStyle.fontFamily,
           ^.svg.fontSize := "24.919",
           config.unitLabel
         )
@@ -258,6 +258,8 @@ trait gauges {
     val minorRadius = radius - minorTickLength
     val regFont = 16.919
     val largeFont = 24.919
+    //val fontFamily = "BebasNeueBold"
+    val fontFamily = "Noto Sans"
 
     def angles(ticks: Int) =
       (0 to ticks).map { i => (Math.PI * i.toDouble) / (2.0 * ticks) }
@@ -282,7 +284,7 @@ trait gauges {
           val fontSize = if (idx == majorMiddleIdx) largeFont else regFont
           <.svg.text(
             ^.svg.fill := "#666666",
-            ^.svg.fontFamily := "BebasNeueBold",
+            ^.svg.fontFamily := fontFamily,
             ^.svg.fontSize := fontSize,
             ^.svg.x := padding.x + radius - (majorRadius)*cosTheta - (fontSize/4.0)*sinTheta,
             ^.svg.y := padding.y + radius + fontSize/3.0 - (majorRadius - fontSize/2.0)*sinTheta,
@@ -332,7 +334,7 @@ trait gauges {
 
         <.svg.text(
           ^.svg.fill := "#666666",
-          ^.svg.fontFamily := "BebasNeueBold",
+          ^.svg.fontFamily := fontFamily,
           ^.svg.fontSize := regFont,
           ^.svg.x := padding.x + radius - majorRadius + regFont*2,
           ^.svg.y := padding.y + radius + regFont/3.0,
@@ -341,7 +343,7 @@ trait gauges {
 
         <.svg.text(
           ^.svg.fill := "#666666",
-          ^.svg.fontFamily := "BebasNeueBold",
+          ^.svg.fontFamily := fontFamily,
           ^.svg.fontSize := regFont,
           ^.svg.x := padding.x + radius - regFont/4.0,
           ^.svg.y := padding.y + radius + regFont/3.0 - majorRadius + regFont/2.0 + regFont*2,
