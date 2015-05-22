@@ -6,6 +6,8 @@ import scala.collection.mutable.{Map => MMap}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import japgolly.scalajs.react.ScalazReact._
+import scalacss.Defaults._
+import scalacss.ScalaCssReact._
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExport
 import org.scalajs.dom

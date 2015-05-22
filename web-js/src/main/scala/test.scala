@@ -6,6 +6,8 @@ import scala.concurrent.duration._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import japgolly.scalajs.react.ScalazReact._
+import scalacss.Defaults._
+import scalacss.ScalaCssReact._
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExport
 import org.scalajs.dom
@@ -100,6 +102,7 @@ object Test extends js.JSApp with gauges {
 
   @JSExport
   def main(): Unit = {
+    GlobalStyles.addToDocument()
     Dashboard() render mountNode
   }
 

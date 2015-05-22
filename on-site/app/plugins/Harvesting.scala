@@ -40,7 +40,7 @@ class Harvesting(app: Application) extends Plugin
 
   lazy private val handler = new ModbusRequestHandler(
     ioPool = Executors.newFixedThreadPool(genRequests.length + gridRequests.length),
-    maxConnections = 1,   // Leave connections available for other applications, Diris has limit of 4
+    maxConnections = 4,   // Leave connections available for other applications, Diris has limit of 4
     closeUnusedConnectionAfter = 1.minute)
 
   lazy private val killSwitch = async.signalOf[Boolean](false)
