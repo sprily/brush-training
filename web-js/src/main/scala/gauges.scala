@@ -43,7 +43,7 @@ trait gauges {
                              labelPrecision  =  1,
                              unitLabel = "cos φ",
                              gaugeLabel = "Power Factor",
-                             scaleBy = 1.0)
+                             scaleBy = 0.001)
   }
 
   object Gauge {

@@ -54,7 +54,8 @@ lazy val webJS = (project in file("web-js")).
       "com.github.japgolly.scalajs-react" %%% "ext-monocle" % "0.8.4",
       "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.4",
       "com.github.japgolly.scalacss"      %%% "core" % "0.2.0",
-      "com.github.japgolly.scalacss"      %%% "ext-react" % "0.2.0"
+      "com.github.japgolly.scalacss"      %%% "ext-react" % "0.2.0",
+      "com.lihaoyi"                       %%% "upickle" % "0.2.8"
     ),
     jsDependencies ++= Seq(
       "org.webjars" % "react"     % "0.12.1" / "react-with-addons.js" commonJSName "React",
@@ -70,7 +71,8 @@ lazy val webShared = (crossProject.crossType(CrossType.Pure) in file("web-shared
   settings(
     libraryDependencies ++= Seq(
       "org.webjars" % "font-awesome" % "4.3.0-1" % Provided,
-      "org.webjars" % "bootstrap" % "3.3.4" % Provided
+      "org.webjars" % "bootstrap" % "3.3.4" % Provided,
+      "com.lihaoyi"           %% "upickle"              % "0.2.8"
     ),
     LessKeys.compress in Assets := true
   ).
@@ -103,7 +105,9 @@ lazy val onSite = (project in file("on-site")).
       "org.scalaz.stream"     %% "scalaz-stream"        % "0.7a",
       "uk.co.sprily"          %% "dh-modbus"            % "0.1.1",
       "uk.co.sprily"          %% "scala-mqtt-core"      % "0.1.3",
-      "org.webjars"            % "bootstrap"            % "3.3.4"
+      "org.webjars"            % "bootstrap"            % "3.3.4",
+      "org.scodec"            %% "scodec-core"          % "1.7.0",
+      "org.scodec"            %% "scodec-bits"          % "1.0.6"
     )
   ).
   enablePlugins(PlayScala).

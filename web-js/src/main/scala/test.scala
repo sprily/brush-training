@@ -12,25 +12,40 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExport
 import org.scalajs.dom
 
+import btf.webshared._
+
 object Test extends js.JSApp with gauges {
+
+  type Readings = Either[GridReadings, GeneratorReadings]
 
   class Backend($: BackendScope[Unit, State]) {
 
     import monifu.concurrent.Implicits.globalScheduler
 
-    private[this] var ws: js.UndefOr[WS[String]] = js.undefined
+    private[this] var ws: js.UndefOr[WS] = js.undefined
     private[this] val wsURI = js.Dynamic.global.jsRoutes.uk.co.sprily.btf.web.controllers.Application.socket().webSocketURL()
 
     def start() = {
-      ws = WSModule.connect[String](wsURI.asInstanceOf[String], 10.seconds)
-      ws.get.data.foreach(update)
+      ws = WSModule.connect(wsURI.asInstanceOf[String], 10.seconds)
+      ws.get.data[Readings].foreach {
+        case Left(error) => println(error)
+        case Right(r)    => update(r)
+      }
     }
 
-    private def update(msg: String) = $.modState(s =>
-      s.copy(connected=true,
-             latest=(msg +: s.latest).slice(0,10),
-             count = s.count+1)
-    )
+    private def update(reading: Readings) = $.modState { s =>
+      reading match {
+        case Left(r@GridReadings(_,_,_,_,_,_)) => s.copy(
+          connected = true,
+          count     = s.count+1,
+          grid      = r)
+        case Right(r@GeneratorReadings(_,_,_,_,_,_)) => s.copy(
+          connected = true,
+          count     = s.count+1,
+          generator = r)
+      }
+    }
+
   }
 
   case class GaugePanel(
@@ -44,49 +59,64 @@ object Test extends js.JSApp with gauges {
     def grid      = GaugePanel("Grid Instrumentation",      current, power, mvars, pf, voltage, frequency)
     def generator = GaugePanel("Generator Instrumentation", current, power, mvars, pf, voltage, frequency)
 
-    def current   = Gauge("Line Current", "A",      0, 120, minorTicks=3)
-    def power     = Gauge("Active Power", "MW",     0, 5, majorTicks=4, minorTicks=9)   // TODO
-    def mvars     = Gauge("Reactive Power", "MVAR",  -5, 5, majorTicks=9, minorTicks=4)
+    def current   = Gauge("Line Current", "A",      0, 120, minorTicks=3, scaleBy=0.001)
+    def power     = Gauge("Active Power", "MW",     0, 5, majorTicks=4, minorTicks=9, scaleBy=0.00001)
+    def mvars     = Gauge("Reactive Power", "MVAR",  -5, 5, majorTicks=9, minorTicks=4, scaleBy=0.00001)
     def pf        = PFGauge
-    def voltage   = Gauge("Voltage", "kV",     0, 15, majorTicks=2, minorTicks=9)  // TODO
-    def frequency = Gauge("Frequency", "Hz",    30, 70, majorTicks=3,minorTicks=9)
+    def voltage   = Gauge("Voltage", "kV",     0, 15, majorTicks=2, minorTicks=9, scaleBy=0.00001)
+    def frequency = Gauge("Frequency", "Hz",    30, 70, majorTicks=3,minorTicks=9, scaleBy=0.01)
 
   }
 
   case class Instruments(grid: GaugePanel, generator: GaugePanel)
 
-  case class State(connected: Boolean, latest: IndexedSeq[String], count: Int, instruments: Instruments) {
-    def gaugeText = connected match {
-      case false => "connecting"
-      case true  => "connected"
-    }
-  }
   object Instruments {
     def init = Instruments(GaugePanel.grid, GaugePanel.generator)
   }
 
-  object State {
-    def init = State(connected=false, latest=Vector.empty, count=0, instruments=Instruments.init)
+  case class State(
+      connected: Boolean,
+      latest: IndexedSeq[String],
+      count: Int,
+      instruments: Instruments,
+      grid: GridReadings,
+      generator: GeneratorReadings) {
+
+    def gaugeText = connected match {
+      case false => "connecting"
+      case true  => "connected"
+    }
+
   }
 
-  val Panel = ReactComponentB[(GaugePanel,Double)]("Panel")
+  object State {
+    def init = State(
+      connected=false,
+      latest=Vector.empty,
+      count=0,
+      instruments=Instruments.init,
+      grid=GridReadings.init,
+      generator=GeneratorReadings.init)
+  }
+
+  val Panel = ReactComponentB[(GaugePanel,PanelReadings)]("Panel")
     .render { S => {
-      val (panel, value) = S
+      val (panel, readings) = S
       <.div(
         <.div(grid.row,
           <.div(grid.col(12), <.p(BrushTheme.title, panel.label))
         ),
         <.div(grid.row,
-          <.div(grid.col(6), corner((panel.current,   value))),
-          <.div(grid.col(6), corner((panel.power,     value)))
+          <.div(grid.col(6), corner((panel.current,   readings.current))),
+          <.div(grid.col(6), corner((panel.power,     readings.activePower)))
         ),
         <.div(grid.row,
-          <.div(grid.col(6), corner((panel.mvars,     value))),
-          <.div(grid.col(6), powerFactor((panel.pf,   value)))
+          <.div(grid.col(6), corner((panel.mvars,     readings.reactivePower))),
+          <.div(grid.col(6), powerFactor((panel.pf,   readings.powerFactor)))
         ),
         <.div(grid.row,
-          <.div(grid.col(6), corner((panel.voltage,   value))),
-          <.div(grid.col(6), corner((panel.frequency, value)))
+          <.div(grid.col(6), corner((panel.voltage,   readings.voltage))),
+          <.div(grid.col(6), corner((panel.frequency, readings.frequency)))
         )
       )
     }}
@@ -104,7 +134,7 @@ object Test extends js.JSApp with gauges {
 
         <.div(
           grid.col(4),
-          Panel((S.instruments.grid, S.count))
+          Panel((S.instruments.grid, S.grid))
         ),
 
         <.div(
@@ -113,7 +143,7 @@ object Test extends js.JSApp with gauges {
 
         <.div(
           grid.col(4),
-          Panel((S.instruments.generator, S.count))
+          Panel((S.instruments.generator, S.generator))
         )
       )
     })
