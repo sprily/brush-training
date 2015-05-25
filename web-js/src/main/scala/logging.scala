@@ -21,6 +21,20 @@ object Logging {
     new LoggerImpl(underlying)
   }
 
+  def ajaxLogger(ns: String, url: String): Logger = {
+    val underlying = Log4JavaScript.log4javascript.getLogger(ns)
+    underlying.addAppender(consoleAppender)
+    underlying.addAppender(ajaxAppender(url))
+    new LoggerImpl(underlying)
+  }
+
+  private def ajaxAppender(url: String) = {
+    val a = new AjaxAppender(url)
+    a.addHeader("Content-Type", "application/json")
+    a.setLayout(new JsonLayout)
+    a
+  }
+
   private class LoggerImpl(underlying: Log4JSLogger) extends Logger {
     override def debug(msg: String) = underlying.debug(msg)
     override def info(msg: String) = underlying.info(msg)
@@ -48,12 +62,21 @@ object Logging {
 
 
   @JSName("log4javascript.Appender")
-  trait Log4JSAppender extends js.Object { }
+  trait Log4JSAppender extends js.Object
 
   @JSName("log4javascript.BrowserConsoleAppender")
   class BrowserConsoleAppender extends Log4JSAppender
 
   @JSName("log4javascript.AjaxAppender")
-  class AjaxAppender(url: String) extends Log4JSAppender { }
+  class AjaxAppender(url: String) extends Log4JSAppender {
+    def setLayout(layout: Layout): Unit = js.native
+    def addHeader(header: String, value: String): Unit = js.native
+  }
+
+  @JSName("log4javascript.Layout")
+  trait Layout extends js.Object
+
+  @JSName("log4javascript.JsonLayout")
+  class JsonLayout extends Layout
 }
 
