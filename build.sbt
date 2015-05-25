@@ -38,33 +38,6 @@ lazy val commonDependencies = Seq(
   "org.specs2"                  %% "specs2-junit"         % "3.6"         % "test"
 )
 
-lazy val web = (project in file("web")).
-  settings(commonSettingsWithDeps: _*).
-  settings(
-
-    // An attempt to prevent the root project's propogation of the debian:packageBin
-    // Task from building the web sub-project.  The reason it does is because web
-    // enables the Play plugin, which must auto-enable the native packager, but attempts
-    // to disable it again don't work.  So this workaround is to hard-code the Task itself
-    // to not do anything useful.  There's a SO question on a similar problem, with no
-    // solution yet:
-    //
-    // http://stackoverflow.com/questions/28948964/dont-publish-a-docker-image-for-each-sbt-subproject
-    packageBin in Debian := file(""),
-
-    scalaJSProjects := Seq(webJS),
-    pipelineStages := Seq(scalaJSProd),
-    libraryDependencies ++= Seq(
-      "com.vmunier"           %% "play-scalajs-scripts" % "0.2.1",
-      "org.scalaz.stream"     %% "scalaz-stream"        % "0.7a",
-      "uk.co.sprily"          %% "dh-modbus"            % "0.1.1",
-      "uk.co.sprily"          %% "scala-mqtt-core"      % "0.1.3"
-    )
-  ).
-  enablePlugins(PlayScala).
-  dependsOn(webSharedJvm).
-  aggregate(Seq(webJS).map(projectToRef):_*)
-
 lazy val webJS = (project in file("web-js")).
   settings(commonSettingsWithDeps: _*).
   settings(
@@ -79,14 +52,30 @@ lazy val webJS = (project in file("web-js")).
       "com.github.japgolly.scalajs-react" %%% "core" % "0.8.4",
       "com.github.japgolly.scalajs-react" %%% "ext-scalaz71" % "0.8.4",
       "com.github.japgolly.scalajs-react" %%% "ext-monocle" % "0.8.4",
-      "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.4"),
-    jsDependencies += "org.webjars" % "react" % "0.12.1" / "react-with-addons.js" commonJSName "React"
+      "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.4",
+      "com.github.japgolly.scalacss"      %%% "core" % "0.2.0",
+      "com.github.japgolly.scalacss"      %%% "ext-react" % "0.2.0",
+      "com.lihaoyi"                       %%% "upickle" % "0.2.8"
+    ),
+    jsDependencies ++= Seq(
+      "org.webjars" % "react"     % "0.12.1" / "react-with-addons.js" commonJSName "React",
+      "org.webjars" % "jquery"    % "2.1.4"  / "jquery.js",
+      "org.webjars" % "bootstrap" % "3.3.4"  / "bootstrap.js" dependsOn "jquery.js"
+    )
   ).
-  enablePlugins(ScalaJSPlugin, ScalaJSPlay).
+  enablePlugins(ScalaJSPlugin, ScalaJSPlay, SbtWeb).
   dependsOn(webSharedJs)
 
 lazy val webShared = (crossProject.crossType(CrossType.Pure) in file("web-shared")).
   settings(commonSettings:_*).
+  settings(
+    libraryDependencies ++= Seq(
+      "org.webjars" % "font-awesome" % "4.3.0-1" % Provided,
+      "org.webjars" % "bootstrap" % "3.3.4" % Provided,
+      "com.lihaoyi"           %% "upickle"              % "0.2.8"
+    ),
+    LessKeys.compress in Assets := true
+  ).
   jsConfigure(_ enablePlugins ScalaJSPlay).
   jsSettings(sourceMapsBase := baseDirectory.value / "..")
 
@@ -108,7 +97,19 @@ lazy val onSite = (project in file("on-site")).
       (mappings in Universal).value.map {
         case (file, name) => (file, name.replace("//", "/"))
       }
-    }
+    },
+    scalaJSProjects := Seq(webJS),
+    pipelineStages := Seq(scalaJSProd),
+    libraryDependencies ++= Seq(
+      "com.vmunier"           %% "play-scalajs-scripts" % "0.2.1",
+      "org.scalaz.stream"     %% "scalaz-stream"        % "0.7a",
+      "uk.co.sprily"          %% "dh-modbus"            % "0.1.1",
+      "uk.co.sprily"          %% "scala-mqtt-core"      % "0.1.3",
+      "org.webjars"            % "bootstrap"            % "3.3.4",
+      "org.scodec"            %% "scodec-core"          % "1.7.0",
+      "org.scodec"            %% "scodec-bits"          % "1.0.6"
+    )
   ).
   enablePlugins(PlayScala).
-  dependsOn(web)
+  dependsOn(webSharedJvm).
+  aggregate(Seq(webJS).map(projectToRef):_*)

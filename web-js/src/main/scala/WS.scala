@@ -12,17 +12,20 @@ import monifu.reactive.channels._
 
 import org.scalajs.dom
 
+import upickle._
+
 sealed trait WSState
 case object WSOpen extends WSState
 case object WSClosed extends WSState
 
 trait WSModule {
-  def connect[T](url: String, heartbeat: FiniteDuration): WS[T]
+  def connect(url: String, heartbeat: FiniteDuration): WS
 }
 
-trait WS[T] {
+trait WS {
+  type Error = String
   def status: Observable[WSState]
-  def data: Observable[String]    // TODO: make this generic
+  def data[T:Reader]: Observable[Either[Error,T]]
   def errors: Observable[dom.ErrorEvent]
   def disconnect(): Unit
 }
@@ -40,12 +43,12 @@ object WSModule extends WSModule {
     *       data when ready.  This requires an update to the WS controller
     *       server-side.  Currently PublishChannel is unbuffered.
     */
-  protected[WSModule] class WSImpl[T](
+  protected[WSModule] class WSImpl(
       url: String,
       heartbeat: FiniteDuration,
       statusChannel: PublishChannel[WSState],
       dataChannel: PublishChannel[String],
-      errorsChannel: PublishChannel[dom.ErrorEvent]) extends WS[T] {
+      errorsChannel: PublishChannel[dom.ErrorEvent]) extends WS {
 
     private[this] var raw: Option[dom.WebSocket] = None
     private[this] var active = true
@@ -58,12 +61,19 @@ object WSModule extends WSModule {
     status.filter(_ == WSOpen).foreach(_ => logger.info(s"Connected to $url"))
 
     // Set-up heartbeat
-    data.filter(_ == "heartbeat").foreach(_ => lastHB = Date.now())
+    dataChannel.filter(_ == "heartbeat").foreach(_ => lastHB = Date.now())
     private[this] val intervalH = IntervalHandler(dom.window.setInterval(checkHeartbeat _, heartbeat.toMillis))
 
     override def status = statusChannel
-    override def data   = dataChannel
     override def errors = errorsChannel
+
+    override def data[T:Reader] = {
+      dataChannel.filter(_ != "heartbeat").map { s => try {
+        Right(upickle.read[T](s))
+      } catch {
+        case e: Exception => Left(e.toString)
+      }}
+    }
 
     override def disconnect(): Unit = {
       logger.info(s"Closing websocket: $this")
@@ -109,7 +119,7 @@ object WSModule extends WSModule {
 
   }
     
-  override def connect[T](url: String, heartbeat: FiniteDuration): WS[T] = {
+  override def connect(url: String, heartbeat: FiniteDuration): WS = {
 
     val statusChannel = PublishChannel[WSState]()
     val dataChannel = PublishChannel[String]()
