@@ -37,11 +37,9 @@ object Test extends js.JSApp with gauges {
       reading match {
         case Left(r@GridReadings(_,_,_,_,_,_)) => s.copy(
           connected = true,
-          count     = s.count+1,
           grid      = r)
         case Right(r@GeneratorReadings(_,_,_,_,_,_)) => s.copy(
           connected = true,
-          count     = s.count+1,
           generator = r)
       }
     }
@@ -76,24 +74,13 @@ object Test extends js.JSApp with gauges {
 
   case class State(
       connected: Boolean,
-      latest: IndexedSeq[String],
-      count: Int,
       instruments: Instruments,
       grid: GridReadings,
-      generator: GeneratorReadings) {
-
-    def gaugeText = connected match {
-      case false => "connecting"
-      case true  => "connected"
-    }
-
-  }
+      generator: GeneratorReadings)
 
   object State {
     def init = State(
       connected=false,
-      latest=Vector.empty,
-      count=0,
       instruments=Instruments.init,
       grid=GridReadings.init,
       generator=GeneratorReadings.init)
