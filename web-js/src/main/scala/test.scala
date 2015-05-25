@@ -103,7 +103,9 @@ object Test extends js.JSApp with gauges {
           Panel((S.instruments.grid, S.count))
         ),
 
-        <.div(grid.col(4)),
+        <.div(
+          grid.col(4),
+          <.img(^.src := "/assets/images/brush-logo.png"), ^.cls := "text-center"),
 
         <.div(
           grid.col(4),
