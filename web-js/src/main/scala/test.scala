@@ -111,9 +111,6 @@ object Test extends js.JSApp with gauges {
       val (panel, panelState) = S
       <.div(
         <.div(grid.row,
-          <.div(grid.col(12), <.p(BrushTheme.title,   panel.label))
-        ),
-        <.div(grid.row,
           <.div(grid.col(6), corner((panel.current,   panelState.readings.current))),
           <.div(grid.col(6), corner((panel.power,     panelState.readings.activePower)))
         ),
@@ -124,12 +121,6 @@ object Test extends js.JSApp with gauges {
         <.div(grid.row,
           <.div(grid.col(6), corner((panel.voltage,   panelState.readings.voltage))),
           <.div(grid.col(6), corner((panel.frequency, panelState.readings.frequency)))
-        ),
-        <.div(grid.row,
-          <.div(grid.col(12),
-            ^.cls := "text-center",
-            <.small(<.em(s"Last Updated: ${panelState.lastUpdateStr}"))
-          )
         )
       )
     }}
@@ -138,16 +129,23 @@ object Test extends js.JSApp with gauges {
   val InactivePanel = ReactComponentB[PanelState[PanelReadings]]("Panel")
     .render { S =>
       <.div(
-        <.p("Diris A40 appears to be offline"),
-        <.p(s"Last Updated: ${S.lastUpdateStr}")
+        <.p("Diris A40 appears to be offline")
       )
     }
     .build
 
   val Panel = ReactComponentB[(GaugePanel,PanelState[PanelReadings])]("Panel")
     .render { S =>
-      <.div(^.cls := "well",
-        if (S._2.isActive) ActivePanel(S) else InactivePanel(S._2)
+      <.div(^.cls := "panel panel-default",
+        <.div(^.cls := "panel-heading text-center",
+          <.p(^.cls := "panel-title", S._1.label)
+        ),
+        <.div(^.cls := "panel-body",
+          if (S._2.isActive) ActivePanel(S) else InactivePanel(S._2)
+        ),
+        <.div(^.cls := "panel-footer text-center",
+          s"Last Updated: ${S._2.lastUpdateStr}"
+        )
       )
     }
     .build
