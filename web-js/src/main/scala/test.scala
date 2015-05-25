@@ -31,15 +31,18 @@ object Test extends js.JSApp with gauges {
         case Left(error) => println(error)
         case Right(r)    => update(r)
       }
+      ws.get.status.foreach(onWSChange)
+    }
+
+    private def onWSChange(state: WSState) = $.modState { s =>
+      s.copy(websocketState=state)
     }
 
     private def update(reading: Readings) = $.modState { s =>
       reading match {
         case Left(r@GridReadings(_,_,_,_,_,_)) => s.copy(
-          connected = true,
           grid      = r)
         case Right(r@GeneratorReadings(_,_,_,_,_,_)) => s.copy(
-          connected = true,
           generator = r)
       }
     }
@@ -73,14 +76,14 @@ object Test extends js.JSApp with gauges {
   }
 
   case class State(
-      connected: Boolean,
+      websocketState: WSState,
       instruments: Instruments,
       grid: GridReadings,
       generator: GeneratorReadings)
 
   object State {
     def init = State(
-      connected=false,
+      websocketState=WSClosed,
       instruments=Instruments.init,
       grid=GridReadings.init,
       generator=GeneratorReadings.init)
@@ -112,12 +115,12 @@ object Test extends js.JSApp with gauges {
   val Dashboard = ReactComponentB[Unit]("Dashboard")
     .initialState(State.init)
     .backend(new Backend(_))
-    .renderS(($,_,S) => S.connected match {
-      case false => <.div(
+    .renderS(($,_,S) => S.websocketState match {
+      case WSClosed => <.div(
         grid.row,
         <.p("Connecting to server...")
       )
-      case true  => <.div(grid.row,
+      case WSOpen  => <.div(grid.row,
 
         <.div(
           grid.col(4),
