@@ -31,20 +31,23 @@ object Test extends js.JSApp with gauges {
         case Left(error) => println(error)
         case Right(r)    => update(r)
       }
+      ws.get.status.foreach(onWSChange)
+    }
+
+    private def onWSChange(state: WSState) = $.modState { s =>
+      s.copy(websocketState=state)
     }
 
     private def update(reading: Readings) = $.modState { s =>
       reading match {
         case Left(r@GridReadings(_,_,_,_,_,_)) => s.copy(
-          connected = true,
-          count     = s.count+1,
-          grid      = r)
+          grid = s.grid.copy(readings=r, lastUpdate=now()))
         case Right(r@GeneratorReadings(_,_,_,_,_,_)) => s.copy(
-          connected = true,
-          count     = s.count+1,
-          generator = r)
+          generator = s.generator.copy(readings=r, lastUpdate=now()))
       }
     }
+
+    private def now() = Some(new js.Date(js.Date.now()))
 
   }
 
@@ -74,63 +77,88 @@ object Test extends js.JSApp with gauges {
     def init = Instruments(GaugePanel.grid, GaugePanel.generator)
   }
 
-  case class State(
-      connected: Boolean,
-      latest: IndexedSeq[String],
-      count: Int,
-      instruments: Instruments,
-      grid: GridReadings,
-      generator: GeneratorReadings) {
+  case class PanelState[+T <: PanelReadings](
+      lastUpdate: Option[js.Date],
+      readings: T) { // TODO option
 
-    def gaugeText = connected match {
-      case false => "connecting"
-      case true  => "connected"
-    }
+    def lastUpdateStr = lastUpdate.map(_.toTimeString).getOrElse("Never") // todo locale
+    def isActive = lastUpdate != None
 
   }
+
+  object PanelState {
+    def  init[T <: PanelReadings](init: T) = PanelState(
+      lastUpdate = None,
+      readings = init)
+  }
+
+  case class State(
+      websocketState: WSState,
+      instruments: Instruments,
+      grid: PanelState[GridReadings],
+      generator: PanelState[GeneratorReadings])
 
   object State {
     def init = State(
-      connected=false,
-      latest=Vector.empty,
-      count=0,
+      websocketState=WSClosed,
       instruments=Instruments.init,
-      grid=GridReadings.init,
-      generator=GeneratorReadings.init)
+      grid=PanelState.init(GridReadings.init),
+      generator=PanelState.init(GeneratorReadings.init))
   }
 
-  val Panel = ReactComponentB[(GaugePanel,PanelReadings)]("Panel")
+  val ActivePanel = ReactComponentB[(GaugePanel,PanelState[PanelReadings])]("Panel")
     .render { S => {
-      val (panel, readings) = S
+      val (panel, panelState) = S
       <.div(
         <.div(grid.row,
-          <.div(grid.col(12), <.p(BrushTheme.title, panel.label))
+          <.div(grid.col(6), corner((panel.current,   panelState.readings.current))),
+          <.div(grid.col(6), corner((panel.power,     panelState.readings.activePower)))
         ),
         <.div(grid.row,
-          <.div(grid.col(6), corner((panel.current,   readings.current))),
-          <.div(grid.col(6), corner((panel.power,     readings.activePower)))
+          <.div(grid.col(6), corner((panel.mvars,     panelState.readings.reactivePower))),
+          <.div(grid.col(6), powerFactor((panel.pf,   panelState.readings.powerFactor)))
         ),
         <.div(grid.row,
-          <.div(grid.col(6), corner((panel.mvars,     readings.reactivePower))),
-          <.div(grid.col(6), powerFactor((panel.pf,   readings.powerFactor)))
-        ),
-        <.div(grid.row,
-          <.div(grid.col(6), corner((panel.voltage,   readings.voltage))),
-          <.div(grid.col(6), corner((panel.frequency, readings.frequency)))
+          <.div(grid.col(6), corner((panel.voltage,   panelState.readings.voltage))),
+          <.div(grid.col(6), corner((panel.frequency, panelState.readings.frequency)))
         )
       )
     }}
     .build
 
+  val InactivePanel = ReactComponentB[PanelState[PanelReadings]]("Panel")
+    .render { S =>
+      <.div(^.cls := "text-center",
+        <.p("No Data Received")
+      )
+    }
+    .build
+
+  val Panel = ReactComponentB[(GaugePanel,PanelState[PanelReadings])]("Panel")
+    .render { S =>
+      <.div(^.cls := "panel panel-default",
+        <.div(^.cls := "panel-heading text-center",
+          <.p(^.cls := "panel-title", S._1.label)
+        ),
+        <.div(^.cls := "panel-body",
+          if (S._2.isActive) ActivePanel(S) else InactivePanel(S._2)
+        ),
+        <.div(^.cls := "panel-footer text-center",
+          <.small(<.em(s"Last Updated: ${S._2.lastUpdateStr}"))
+        )
+      )
+    }
+    .build
+
   val Dashboard = ReactComponentB[Unit]("Dashboard")
     .initialState(State.init)
     .backend(new Backend(_))
-    .renderS(($,_,S) => S.connected match {
-      case false => <.div(
+    .renderS(($,_,S) => S.websocketState match {
+      case WSClosed => <.div(
         grid.row,
         <.p("Connecting to server...")
       )
-      case true  => <.div(grid.row,
+      case WSOpen  => <.div(grid.row,
 
         <.div(
           grid.col(4),
