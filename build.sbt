@@ -58,9 +58,7 @@ lazy val webJS = (project in file("web-js")).
       "com.lihaoyi"                       %%% "upickle" % "0.2.8"
     ),
     jsDependencies ++= Seq(
-      "org.webjars" % "react"     % "0.12.1" / "react-with-addons.js" commonJSName "React",
-      "org.webjars" % "jquery"    % "2.1.4"  / "jquery.js",
-      "org.webjars" % "bootstrap" % "3.3.4"  / "bootstrap.js" dependsOn "jquery.js"
+      "org.webjars" % "react"     % "0.12.1" / "react-with-addons.js" commonJSName "React"
     )
   ).
   enablePlugins(ScalaJSPlugin, ScalaJSPlay, SbtWeb).
