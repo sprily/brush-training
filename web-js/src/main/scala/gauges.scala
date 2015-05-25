@@ -18,44 +18,52 @@ trait gauges {
 
   case class GaugeLayout(
       majorTicks: Int, minorTicks: Int,
-      minValue: Double, maxValue: Double,
-      precision: Int, label: String) {
+      minValue: Double, maxValue: Double, labelPrecision: Int,
+      unitLabel: String, gaugeLabel: String,
+      scaleBy: Double) {
 
-    def degrees(scaled: Double) = {
+    def angleFor(raw: Double) = degrees(scale(raw))
+
+    private def degrees(scaled: Double) = {
       (Math.max(Math.min(scaled, maxValue), minValue) - minValue) / (maxValue - minValue) * 90.0 - 45.0
     }
 
+    private def scale(raw: Double) = raw * scaleBy
   }
 
-  case class DataConfig(unitLabel: String, scaleBy: Double) {
-    def scale(raw: Double) = raw * scaleBy
-  }
-
-  case class Gauge(layout: GaugeLayout, config: DataConfig)
+  case class Gauge(layout: GaugeLayout)
 
 
   // Fixed layout for Power Factor Gauge
   case object PFGauge {
-    def config = DataConfig("cos φ", 1.0)
-    def layout = GaugeLayout(label = "Power Factor",
-                             majorTicks =  3,
-                             minorTicks =  1,
+    def layout = GaugeLayout(majorTicks =  7,
+                             minorTicks =  3,
                              minValue   =  0.2,
                              maxValue   =  1.0,
-                             precision  =  1)
+                             labelPrecision  =  1,
+                             unitLabel = "cos φ",
+                             gaugeLabel = "Power Factor",
+                             scaleBy = 1.0)
   }
 
   object Gauge {
-    def apply(label: String,
+    def apply(gaugeLabel: String,
               unitLabel: String,
-              min: Double,
-              max: Double,
-              majorTicks: Int = 2,
-              minorTicks: Int = 4,
-              precision: Int = 0,
+              minValue: Double,
+              maxValue: Double,
+              majorTicks: Int = 5,
+              minorTicks: Int = 2,
+              labelPrecision: Int = 0,
               scaleBy: Double = 1.0) = new Gauge(
-      GaugeLayout(majorTicks, minorTicks, min, max, precision, label),
-      DataConfig(unitLabel, scaleBy)
+      GaugeLayout(
+        majorTicks = majorTicks,
+        minorTicks = minorTicks,
+        minValue = minValue,
+        maxValue = maxValue,
+        labelPrecision = labelPrecision,
+        unitLabel = unitLabel,
+        gaugeLabel = gaugeLabel,
+        scaleBy = scaleBy)
     )
   }
 
@@ -70,10 +78,10 @@ trait gauges {
                 ^.svg.y := "0px",
                 ^.svg.viewBox := "0 0 258.336 258.336",
                 Face(),
-                UnitLabel(gauge.config),
+                UnitLabel(gauge.layout),
                 Dial(gauge.layout),
                 PFDialLabels(gauge.layout),
-                Arm(gauge.layout.degrees(gauge.config.scale(data))),
+                Arm(gauge.layout.angleFor(data)),
                 Frame(),
                 ArmLid(),
                 InnerShadow(),
@@ -83,7 +91,7 @@ trait gauges {
             ),
             <.div(grid.row,
               <.div(grid.col(12),
-                <.p(gauge.layout.label, ^.color := "white", ^.backgroundColor := "black", ^.marginLeft := 15, ^.marginRight := 15),
+                <.p(gauge.layout.gaugeLabel, ^.color := "white", ^.backgroundColor := "black", ^.marginLeft := 15, ^.marginRight := 15),
                 ^.cls := "text-center"
               )
             )
@@ -105,10 +113,10 @@ trait gauges {
                 ^.svg.y := "0px",
                 ^.svg.viewBox := "0 0 258.336 258.336",
                 Face(),
-                UnitLabel(gauge.config),
+                UnitLabel(gauge.layout),
                 Dial(gauge.layout),
                 DialLabels(gauge.layout),
-                Arm(gauge.layout.degrees(gauge.config.scale(data))),
+                Arm(gauge.layout.angleFor(data)),
                 Frame(),
                 ArmLid(),
                 InnerShadow(),
@@ -118,7 +126,7 @@ trait gauges {
             ),
             <.div(grid.row,
               <.div(grid.col(12),
-                <.p(gauge.layout.label, ^.color := "white", ^.backgroundColor := "black", ^.marginLeft := 15, ^.marginRight := 15),
+                <.p(gauge.layout.gaugeLabel, ^.color := "white", ^.backgroundColor := "black", ^.marginLeft := 15, ^.marginRight := 15),
                 ^.cls := "text-center"
               )
             )
@@ -145,15 +153,15 @@ trait gauges {
     .shouldComponentUpdate { case _ => false }
     .buildU
 
-  val UnitLabel = ReactComponentB[DataConfig]("UnitLabel")
-    .render { config =>
+  val UnitLabel = ReactComponentB[GaugeLayout]("UnitLabel")
+    .render { layout =>
       <.svg.g(
         ^.svg.id := "UnitLabel",
         <.svg.text(
           ^.svg.transform := "matrix(1 0 0 1 36.1465 52.4482)",
           ^.svg.fontFamily := GaugeStyle.fontFamily,
           ^.svg.fontSize := "24.919",
-          config.unitLabel
+          layout.unitLabel
         )
       )
     }
@@ -302,9 +310,10 @@ trait gauges {
     def dialLabels(labels: IndexedSeq[String]) = {
       val majorAngles = angles(labels.length - 1)
       val majorMiddleIdx = labels.length / 2
+      val hasMiddleLabel = labels.length % 2 == 1
       <.svg.g(
         labels.zip(majorAngles).zipWithIndex.map { case ((l, (cosTheta, sinTheta)), idx) => {
-          val fontSize = if (idx == majorMiddleIdx) largeFont else regFont
+          val fontSize = if (hasMiddleLabel && idx == majorMiddleIdx) largeFont else regFont
           <.svg.text(
             ^.svg.fill := "#666666",
             ^.svg.fontFamily := fontFamily,
@@ -326,10 +335,10 @@ trait gauges {
       val major = layout.majorTicks
       val minValue = layout.minValue
       val maxValue = layout.maxValue
-      val majorTicks = 2*major + 2
+      val majorTicks = major + 1
 
       val labels = (0 to majorTicks).map { i => minValue + ((maxValue - minValue) / majorTicks * i) }
-                                    .map { v => s"%-,.${layout.precision}f".format(v) }
+                                    .map { v => s"%-,.${layout.labelPrecision}f".format(v) }
 
       dialLabels(labels)
 
@@ -341,7 +350,7 @@ trait gauges {
     .render { layout => {
       import GaugeStyle._
 
-      val major = layout.majorTicks
+      val major = layout.majorTicks / 2
       val minValue = layout.minValue
       val maxValue = layout.maxValue
 
@@ -350,7 +359,7 @@ trait gauges {
 
       val labels = (
         values ++ Seq(maxValue) ++ values.reverse
-      ).map { v => s"%-,.${layout.precision}f".format(v) }
+      ).map { v => s"%-,.${layout.labelPrecision}f".format(v) }
 
       <.svg.g(
         dialLabels(labels),
@@ -380,9 +389,10 @@ trait gauges {
 
   /** Draws the tick marks
     *
-    * major is the number of bold ticks to place between an endpoint and the *centre*
-    * of the gauge -- this is to ensure there is always a middle point on the gauge.
-    * minor is the number of regular ticks to place between each major tick
+    * major is the number of bold ticks to place *between* the two endpoints.
+    *
+    * If the number of major ticks is odd, ie - there's a central major tick, then
+    * it is rendered slightly differently to the other major ticks.
     *
     * TODO: there's space for reducing the amount that's recomputed here
     *
@@ -396,8 +406,9 @@ trait gauges {
       val minValue = layout.minValue
       val maxValue = layout.maxValue
 
-      val majorTicks = 2*major + 2
+      val majorTicks = major + 1
       val minorTicks = majorTicks * (minor+1)
+      val hasMiddleTick = majorTicks % 2 == 0
       val majorMiddleIdx = (majorTicks+1)/2
       val minorAngles = (0 to minorTicks).map { i => (Math.PI * i.toDouble) / (2.0 * minorTicks) }
                                          .map { theta => (Math.cos(theta), Math.sin(theta)) }
@@ -423,7 +434,11 @@ trait gauges {
 
         <.svg.g(
           ^.svg.id := "major-short",
-          majorAngles.zipWithIndex.filter(_._2 != majorMiddleIdx).map(_._1).map(majorShortTick)
+          if (hasMiddleTick) {
+            majorAngles.zipWithIndex.filter(_._2 != majorMiddleIdx).map(_._1).map(majorShortTick)
+          } else {
+            majorAngles.map(majorShortTick)
+          }
         )
 
       )
