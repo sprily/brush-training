@@ -34,14 +34,15 @@ object Test extends js.JSApp with gauges {
   }
 
   case class GaugePanel(
+    label: String,
     current: Gauge, power: Gauge,
     mvars: Gauge,   pf: PFGauge.type,
     voltage: Gauge, frequency: Gauge)
 
   object GaugePanel {
 
-    def grid      = GaugePanel(current, power, mvars, pf, voltage, frequency)
-    def generator = GaugePanel(current, power, mvars, pf, voltage, frequency)
+    def grid      = GaugePanel("Utility",   current, power, mvars, pf, voltage, frequency)
+    def generator = GaugePanel("Generator", current, power, mvars, pf, voltage, frequency)
 
     def current   = Gauge("Line Current", "A",      0, 120, minorTicks=3)
     def power     = Gauge("Power", "MW",     0, 5, majorTicks=4, minorTicks=9)   // TODO
@@ -72,6 +73,9 @@ object Test extends js.JSApp with gauges {
     .render { S => {
       val (panel, value) = S
       <.div(
+        <.div(grid.row,
+          <.div(grid.col(12), <.p(BrushTheme.title, panel.label))
+        ),
         <.div(grid.row,
           <.div(grid.col(6), corner((panel.current,   value))),
           <.div(grid.col(6), corner((panel.power,     value)))
@@ -121,6 +125,7 @@ object Test extends js.JSApp with gauges {
   @JSExport
   def main(): Unit = {
     GlobalStyles.addToDocument()
+    BrushTheme.addToDocument()
     Dashboard() render mountNode
   }
 

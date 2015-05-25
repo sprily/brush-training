@@ -278,10 +278,8 @@ trait gauges {
   val GaugeTitle = ReactComponentB[String]("GaugeLabel")
     .render { label => 
       <.p(
+        BrushTheme.title,
         label,
-        ^.color := "white",
-        ^.backgroundColor := "black",
-        ^.cls := "text-center",
         ^.marginLeft := 15,
         ^.marginRight := 15)
     }
