@@ -128,8 +128,8 @@ object Test extends js.JSApp with gauges {
 
   val InactivePanel = ReactComponentB[PanelState[PanelReadings]]("Panel")
     .render { S =>
-      <.div(
-        <.p("Diris A40 appears to be offline")
+      <.div(^.cls := "text-center",
+        <.p("No Data Received")
       )
     }
     .build
@@ -144,7 +144,7 @@ object Test extends js.JSApp with gauges {
           if (S._2.isActive) ActivePanel(S) else InactivePanel(S._2)
         ),
         <.div(^.cls := "panel-footer text-center",
-          s"Last Updated: ${S._2.lastUpdateStr}"
+          <.small(<.em(s"Last Updated: ${S._2.lastUpdateStr}"))
         )
       )
     }
