@@ -19,7 +19,7 @@ trait gauges {
   case class GaugeLayout(
       majorTicks: Int, minorTicks: Int,
       minValue: Double, maxValue: Double,
-      precision: Int) {
+      precision: Int, label: String) {
 
     def degrees(scaled: Double) = {
       (Math.max(Math.min(scaled, maxValue), minValue) - minValue) / (maxValue - minValue) * 90.0 - 45.0
@@ -37,7 +37,8 @@ trait gauges {
   // Fixed layout for Power Factor Gauge
   case object PFGauge {
     def config = DataConfig("cos φ", 1.0)
-    def layout = GaugeLayout(majorTicks =  3,
+    def layout = GaugeLayout(label = "Power Factor",
+                             majorTicks =  3,
                              minorTicks =  1,
                              minValue   =  0.2,
                              maxValue   =  1.0,
@@ -46,14 +47,15 @@ trait gauges {
 
   object Gauge {
     def apply(label: String,
+              unitLabel: String,
               min: Double,
               max: Double,
               majorTicks: Int = 2,
               minorTicks: Int = 4,
               precision: Int = 0,
               scaleBy: Double = 1.0) = new Gauge(
-      GaugeLayout(majorTicks, minorTicks, min, max, precision),
-      DataConfig(label, scaleBy)
+      GaugeLayout(majorTicks, minorTicks, min, max, precision, label),
+      DataConfig(unitLabel, scaleBy)
     )
   }
 
@@ -61,20 +63,30 @@ trait gauges {
     .render { S => {
       val (gauge, data) = S
         <.div(
-          <.svg.svg(
-            ^.svg.x := "0px",
-            ^.svg.y := "0px",
-            ^.svg.viewBox := "0 0 258.336 258.336",
-            Face(),
-            UnitLabel(gauge.config),
-            Dial(gauge.layout),
-            PFDialLabels(gauge.layout),
-            Arm(gauge.layout.degrees(gauge.config.scale(data))),
-            Frame(),
-            ArmLid(),
-            InnerShadow(),
-            Layer9(),
-            OuterFrame()
+          <.div(grid.row,
+            <.div(grid.col(12),
+              <.svg.svg(
+                ^.svg.x := "0px",
+                ^.svg.y := "0px",
+                ^.svg.viewBox := "0 0 258.336 258.336",
+                Face(),
+                UnitLabel(gauge.config),
+                Dial(gauge.layout),
+                PFDialLabels(gauge.layout),
+                Arm(gauge.layout.degrees(gauge.config.scale(data))),
+                Frame(),
+                ArmLid(),
+                InnerShadow(),
+                Layer9(),
+                OuterFrame()
+              )
+            ),
+            <.div(grid.row,
+              <.div(grid.col(12),
+                <.p(gauge.layout.label, ^.color := "white", ^.backgroundColor := "black", ^.marginLeft := 15, ^.marginRight := 15),
+                ^.cls := "text-center"
+              )
+            )
           )
         )
       }
@@ -86,20 +98,30 @@ trait gauges {
     .render { S => {
       val (gauge, data) = S
         <.div(
-          <.svg.svg(
-            ^.svg.x := "0px",
-            ^.svg.y := "0px",
-            ^.svg.viewBox := "0 0 258.336 258.336",
-            Face(),
-            UnitLabel(gauge.config),
-            Dial(gauge.layout),
-            DialLabels(gauge.layout),
-            Arm(gauge.layout.degrees(gauge.config.scale(data))),
-            Frame(),
-            ArmLid(),
-            InnerShadow(),
-            Layer9(),
-            OuterFrame()
+          <.div(grid.row,
+            <.div(grid.col(12),
+              <.svg.svg(
+                ^.svg.x := "0px",
+                ^.svg.y := "0px",
+                ^.svg.viewBox := "0 0 258.336 258.336",
+                Face(),
+                UnitLabel(gauge.config),
+                Dial(gauge.layout),
+                DialLabels(gauge.layout),
+                Arm(gauge.layout.degrees(gauge.config.scale(data))),
+                Frame(),
+                ArmLid(),
+                InnerShadow(),
+                Layer9(),
+                OuterFrame()
+              )
+            ),
+            <.div(grid.row,
+              <.div(grid.col(12),
+                <.p(gauge.layout.label, ^.color := "white", ^.backgroundColor := "black", ^.marginLeft := 15, ^.marginRight := 15),
+                ^.cls := "text-center"
+              )
+            )
           )
         )
       }

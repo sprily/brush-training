@@ -43,12 +43,12 @@ object Test extends js.JSApp with gauges {
     def grid      = GaugePanel(current, power, mvars, pf, voltage, frequency)
     def generator = GaugePanel(current, power, mvars, pf, voltage, frequency)
 
-    def current   = Gauge("A",      0, 120)
-    def power     = Gauge("MW",     0, 5)   // TODO
-    def mvars     = Gauge("MVAr",  -5, 5, majorTicks=4)
+    def current   = Gauge("Line Current", "A",      0, 120)
+    def power     = Gauge("Power", "MW",     0, 5)   // TODO
+    def mvars     = Gauge("Reactive Power", "MVAr",  -5, 5, majorTicks=4)
     def pf        = PFGauge
-    def voltage   = Gauge("kV",     0, 15)  // TODO
-    def frequency = Gauge("Hz",    30, 70, majorTicks=1)
+    def voltage   = Gauge("Voltage", "kV",     0, 15)  // TODO
+    def frequency = Gauge("Frequency", "Hz",    30, 70, majorTicks=1)
 
   }
 
