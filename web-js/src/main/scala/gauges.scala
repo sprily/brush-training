@@ -91,8 +91,7 @@ trait gauges {
             ),
             <.div(grid.row,
               <.div(grid.col(12),
-                <.p(gauge.layout.gaugeLabel, ^.color := "white", ^.backgroundColor := "black", ^.marginLeft := 15, ^.marginRight := 15),
-                ^.cls := "text-center"
+                GaugeTitle(gauge.layout.gaugeLabel)
               )
             )
           )
@@ -126,8 +125,7 @@ trait gauges {
             ),
             <.div(grid.row,
               <.div(grid.col(12),
-                <.p(gauge.layout.gaugeLabel, ^.color := "white", ^.backgroundColor := "black", ^.marginLeft := 15, ^.marginRight := 15),
-                ^.cls := "text-center"
+                GaugeTitle(gauge.layout.gaugeLabel)
               )
             )
           )
@@ -276,6 +274,18 @@ trait gauges {
     }
     .shouldComponentUpdate { case _ => false }
     .buildU
+
+  val GaugeTitle = ReactComponentB[String]("GaugeLabel")
+    .render { label => 
+      <.p(
+        label,
+        ^.color := "white",
+        ^.backgroundColor := "black",
+        ^.cls := "text-center",
+        ^.marginLeft := 15,
+        ^.marginRight := 15)
+    }
+    .build
 
   object GaugeStyle {
 
