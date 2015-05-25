@@ -41,11 +41,13 @@ object Test extends js.JSApp with gauges {
     private def update(reading: Readings) = $.modState { s =>
       reading match {
         case Left(r@GridReadings(_,_,_,_,_,_)) => s.copy(
-          grid      = r)
+          grid = s.grid.copy(readings=r, lastUpdate=now()))
         case Right(r@GeneratorReadings(_,_,_,_,_,_)) => s.copy(
-          generator = r)
+          generator = s.generator.copy(readings=r, lastUpdate=now()))
       }
     }
+
+    private def now() = Some(new js.Date(js.Date.now()))
 
   }
 
@@ -75,39 +77,62 @@ object Test extends js.JSApp with gauges {
     def init = Instruments(GaugePanel.grid, GaugePanel.generator)
   }
 
+  case class PanelState[+T <: PanelReadings](
+      lastUpdate: Option[js.Date],
+      readings: T) { // TODO option
+
+    def lastUpdateStr = lastUpdate.map(_.toTimeString).getOrElse("Never") // todo locale
+
+  }
+
+  object PanelState {
+    def  init[T <: PanelReadings](init: T) = PanelState(
+      lastUpdate = None,
+      readings = init)
+  }
+
   case class State(
       websocketState: WSState,
       instruments: Instruments,
-      grid: GridReadings,
-      generator: GeneratorReadings)
+      grid: PanelState[GridReadings],
+      generator: PanelState[GeneratorReadings])
 
   object State {
     def init = State(
       websocketState=WSClosed,
       instruments=Instruments.init,
-      grid=GridReadings.init,
-      generator=GeneratorReadings.init)
+      grid=PanelState.init(GridReadings.init),
+      generator=PanelState.init(GeneratorReadings.init))
   }
 
-  val Panel = ReactComponentB[(GaugePanel,PanelReadings)]("Panel")
+  val Panel = ReactComponentB[(GaugePanel,PanelState[PanelReadings])]("Panel")
     .render { S => {
-      val (panel, readings) = S
+      val (panel, panelState) = S
       <.div(
+        ^.cls := "well",
         <.div(grid.row,
-          <.div(grid.col(12), <.p(BrushTheme.title, panel.label))
+          <.div(grid.col(12), <.p(BrushTheme.title,   panel.label))
         ),
         <.div(grid.row,
-          <.div(grid.col(6), corner((panel.current,   readings.current))),
-          <.div(grid.col(6), corner((panel.power,     readings.activePower)))
+          <.div(grid.col(6), corner((panel.current,   panelState.readings.current))),
+          <.div(grid.col(6), corner((panel.power,     panelState.readings.activePower)))
         ),
         <.div(grid.row,
-          <.div(grid.col(6), corner((panel.mvars,     readings.reactivePower))),
-          <.div(grid.col(6), powerFactor((panel.pf,   readings.powerFactor)))
+          <.div(grid.col(6), corner((panel.mvars,     panelState.readings.reactivePower))),
+          <.div(grid.col(6), powerFactor((panel.pf,   panelState.readings.powerFactor)))
         ),
         <.div(grid.row,
-          <.div(grid.col(6), corner((panel.voltage,   readings.voltage))),
-          <.div(grid.col(6), corner((panel.frequency, readings.frequency)))
+          <.div(grid.col(6), corner((panel.voltage,   panelState.readings.voltage))),
+          <.div(grid.col(6), corner((panel.frequency, panelState.readings.frequency)))
+        ),
+        <.div(grid.row,
+          <.div(grid.col(12),
+            ^.cls := "text-center",
+            <.small(<.em(s"Last Updated: ${panelState.lastUpdateStr}"))
+          )
         )
+
+                
       )
     }}
     .build
