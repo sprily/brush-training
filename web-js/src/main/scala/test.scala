@@ -82,6 +82,7 @@ object Test extends js.JSApp with gauges {
       readings: T) { // TODO option
 
     def lastUpdateStr = lastUpdate.map(_.toTimeString).getOrElse("Never") // todo locale
+    def isActive = lastUpdate != None
 
   }
 
@@ -105,11 +106,10 @@ object Test extends js.JSApp with gauges {
       generator=PanelState.init(GeneratorReadings.init))
   }
 
-  val Panel = ReactComponentB[(GaugePanel,PanelState[PanelReadings])]("Panel")
+  val ActivePanel = ReactComponentB[(GaugePanel,PanelState[PanelReadings])]("Panel")
     .render { S => {
       val (panel, panelState) = S
       <.div(
-        ^.cls := "well",
         <.div(grid.row,
           <.div(grid.col(12), <.p(BrushTheme.title,   panel.label))
         ),
@@ -131,10 +131,25 @@ object Test extends js.JSApp with gauges {
             <.small(<.em(s"Last Updated: ${panelState.lastUpdateStr}"))
           )
         )
-
-                
       )
     }}
+    .build
+
+  val InactivePanel = ReactComponentB[PanelState[PanelReadings]]("Panel")
+    .render { S =>
+      <.div(
+        <.p("Diris A40 appears to be offline"),
+        <.p(s"Last Updated: ${S.lastUpdateStr}")
+      )
+    }
+    .build
+
+  val Panel = ReactComponentB[(GaugePanel,PanelState[PanelReadings])]("Panel")
+    .render { S =>
+      <.div(^.cls := "well",
+        if (S._2.isActive) ActivePanel(S) else InactivePanel(S._2)
+      )
+    }
     .build
 
   val Dashboard = ReactComponentB[Unit]("Dashboard")
