@@ -41,6 +41,7 @@ lazy val commonDependencies = Seq(
 lazy val webJS = (project in file("web-js")).
   settings(commonSettingsWithDeps: _*).
   settings(
+    requiresDOM := true,
     scalaJSStage := FastOptStage,
     persistLauncher in Compile := true,
     persistLauncher in Test    := false,
