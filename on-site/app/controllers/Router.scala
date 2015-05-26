@@ -10,7 +10,8 @@ object Router extends Controller {
   def javascriptRoutes = Action { implicit request =>
     Ok(
       Routes.javascriptRouter("jsRoutes")(
-        routes.javascript.Application.socket
+        routes.javascript.Application.socket,
+        routes.javascript.Logging.log
       )
     ).as("text/javascript")
   }

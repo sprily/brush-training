@@ -58,7 +58,8 @@ lazy val webJS = (project in file("web-js")).
       "com.lihaoyi"                       %%% "upickle" % "0.2.8"
     ),
     jsDependencies ++= Seq(
-      "org.webjars" % "react"     % "0.12.1" / "react-with-addons.js" commonJSName "React"
+      "org.webjars" % "react"          % "0.12.1" / "react-with-addons.js" commonJSName "React",
+      "org.webjars" % "log4javascript" % "1.4.10" / "js/log4javascript.js"
     )
   ).
   enablePlugins(ScalaJSPlugin, ScalaJSPlay, SbtWeb).
@@ -102,7 +103,8 @@ lazy val onSite = (project in file("on-site")).
       "com.vmunier"           %% "play-scalajs-scripts" % "0.2.1",
       "org.scalaz.stream"     %% "scalaz-stream"        % "0.7a",
       "uk.co.sprily"          %% "dh-modbus"            % "0.1.1",
-      "uk.co.sprily"          %% "scala-mqtt-core"      % "0.1.3",
+      "uk.co.sprily"          %% "scala-mqtt-core"      % "0.1.4",
+      "uk.co.sprily"          %% "scala-mqtt-logback"   % "0.1.4",
       "org.webjars"            % "bootstrap"            % "3.3.4",
       "org.scodec"            %% "scodec-core"          % "1.7.0",
       "org.scodec"            %% "scodec-bits"          % "1.0.6"
