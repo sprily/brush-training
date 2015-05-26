@@ -109,10 +109,10 @@ object WSModule extends WSModule {
       logger.warning(s"Heartbeat failed")
       raw match {
         case Some(ws) if ws.readyState == dom.WebSocket.OPEN =>
-          logger.info(s"Closing connection due to heartbeat failing")
+          logger.warning(s"Closing connection due to heartbeat failing")
           ws.close()
         case Some(_) =>
-          logger.debug(s"Not closing connection due to heartbeat failure as it is not open")
+          logger.info(s"Not closing connection due to heartbeat failure as it is not open")
         case None =>
           logger.error(s"Unexpected state: no raw websocket available")
           reconnect()
