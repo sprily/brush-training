@@ -58,7 +58,7 @@ lazy val webJS = (project in file("web-js")).
       "com.lihaoyi"                       %%% "upickle" % "0.2.8"
     ),
     jsDependencies ++= Seq(
-      "org.webjars" % "react"          % "0.12.1" / "react-with-addons.js" commonJSName "React",
+      "org.webjars" % "react"          % "0.12.1" / "react-with-addons.min.js" commonJSName "React",
       "org.webjars" % "log4javascript" % "1.4.10" / "js/log4javascript.js"
     )
   ).
