@@ -1,0 +1,57 @@
+<configuration>
+
+  <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel" />
+  
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%coloredLevel %logger{15} - %message%n%xException{5}</pattern>
+    </encoder>
+  </appender>
+  
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${application.home}/logs/application.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- Daily rollover with compression -->
+      <fileNamePattern>application-log-%d{yyyy-MM-dd}.gz</fileNamePattern>
+      <!-- keep 30 days worth of history -->
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="MQTT" class="uk.co.sprily.mqtt.logback.MqttAppender">
+    <url>ssl://mqtt.sprily.co.uk</url>
+    <port>8883</port>
+    <username>test</username>
+    <password>fp1UzGYMaEyXFMNQ6tCrnaoB</password>
+    <mqttRoot>test-dev</mqttRoot>
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} - [%thread] - %message%n%xException</pattern>
+    </layout>
+
+    <!-- Don't log events with level < INFO to the broker -->
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
+  </appender>
+ 
+  <root level="WARN">
+    <appender-ref ref="STDOUT" />
+    <appender-ref ref="FILE" />
+    <appender-ref ref="MQTT" />
+  </root>
+
+  <logger name="play" level="INFO" />
+  <logger name="application" level="INFO" />
+  <logger name="uk.co.sprily" level="INFO" />
+  <logger name="uk.co.sprily.btf" level="INFO" />
+  
+  <!-- Off these ones as they are annoying, and anyway we manage configuration ourself -->
+  <logger name="com.avaje.ebean.config.PropertyMapLoader" level="OFF" />
+  <logger name="com.avaje.ebeaninternal.server.core.XmlConfigLoader" level="OFF" />
+  <logger name="com.avaje.ebeaninternal.server.lib.BackgroundThread" level="OFF" />
+  <logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF" />
+
+</configuration>

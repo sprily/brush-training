@@ -35,7 +35,7 @@ object WSModule extends WSModule {
   import monifu.concurrent.Implicits.globalScheduler
 
   val logger = Logging.ajaxLogger(
-    "WS",
+    "uk.co.sprily.btf.webjs.WS",
     js.Dynamic.global.jsRoutes.uk.co.sprily.btf.web.controllers.Logging.log().absoluteURL().asInstanceOf[String])
 
   private[WSModule] case class IntervalHandler(value: Int) extends AnyVal

@@ -3,6 +3,9 @@ package btf.web
 package controllers
 
 import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.Logger
+
+import org.slf4j.LoggerFactory
 
 import play.api.mvc._
 import play.api.libs.json._
@@ -13,15 +16,26 @@ object Logging extends Controller with LazyLogging {
   def log = Action(BodyParsers.parse.json) { request =>
     request.body.validate[Seq[LogEntry]].fold(
       errors => {
-        println(errors)
-        println(request.body)
+        logger.error(s"Couldn't parse JSON body: $errors")
         BadRequest(s"Couldn't parse JSON body: $errors")
       },
       entries => { 
-        entries.foreach { e => logger.info(e.message) }
+        entries.foreach(logEntry)
         Ok("")  
       }
     )
+  }
+
+  private def logEntry(e: LogEntry): Unit = {
+    val clientLogger = Logger(LoggerFactory.getLogger(e.logger))
+    e.level.toLowerCase match {
+      case "debug"   => clientLogger.debug(e.message)
+      case "info"    => clientLogger.info(e.message)
+      case "warning" => clientLogger.warn(e.message)
+      case "warn"    => clientLogger.warn(e.message)
+      case "error"   => clientLogger.error(e.message)
+      case other     => clientLogger.error(e.message)
+    }
   }
 
   private case class LogEntry(
