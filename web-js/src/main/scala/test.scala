@@ -25,10 +25,15 @@ object Test extends js.JSApp with gauges {
     private[this] var ws: js.UndefOr[WS] = js.undefined
     private[this] val wsURI = js.Dynamic.global.jsRoutes.uk.co.sprily.btf.web.controllers.Application.socket().webSocketURL()
 
+    private[this] val logger = Logging.ajaxLogger(
+      "uk.co.sprily.btf.webjs.Main.Backend",
+      js.Dynamic.global.jsRoutes.uk.co.sprily.btf.web.controllers.Logging.log().absoluteURL().asInstanceOf[String])
+
     def start() = {
+      logger.info("Starting Backend")
       ws = WSModule.connect(wsURI.asInstanceOf[String], 10.seconds)
       ws.get.data[Readings].foreach {
-        case Left(error) => println(error)
+        case Left(error) => logger.error(s"Error getting Readings from websocket: $error")
         case Right(r)    => update(r)
       }
       ws.get.status.foreach(onWSChange)
