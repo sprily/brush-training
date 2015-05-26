@@ -150,14 +150,46 @@ object Test extends js.JSApp with gauges {
     }
     .build
 
+  val Logo = ReactComponentB[Unit]("Logo")
+    .render { _ =>
+      <.div(grid.row,
+        <.div(grid.col(12),
+          <.img(^.src := "/assets/images/brush-logo.png")
+        )
+      )
+    }
+    .buildU
+
+  val EstablishingConnection = ReactComponentB[Unit]("Establishing")
+    .render { _ =>
+      <.div(
+        <.div(grid.row,
+          <.div(grid.col(12),
+            <.h1(
+              ^.cls := "animate",
+              "Establishing Connection")   // TODO localise
+          )
+        )
+      )
+    }.buildU
+
   val Dashboard = ReactComponentB[Unit]("Dashboard")
     .initialState(State.init)
     .backend(new Backend(_))
     .renderS(($,_,S) => S.websocketState match {
-      case WSClosed => <.div(
-        grid.row,
-        <.p("Connecting to server...")
+
+      case WSClosed => <.div(grid.row,
+
+        <.div(grid.col(4)),   // empty
+
+        <.div(grid.col(4), ^.cls := "text-center",
+          Logo(),
+          EstablishingConnection()
+        ),
+
+        <.div(grid.col(4))    // empty
       )
+
       case WSOpen  => <.div(grid.row,
 
         <.div(
@@ -165,15 +197,16 @@ object Test extends js.JSApp with gauges {
           Panel((S.instruments.grid, S.grid))
         ),
 
-        <.div(
-          grid.col(4),
-          <.img(^.src := "/assets/images/brush-logo.png"), ^.cls := "text-center"),
+        <.div(grid.col(4), ^.cls := "text-center",
+          Logo()
+        ),
 
         <.div(
           grid.col(4),
           Panel((S.instruments.generator, S.generator))
         )
       )
+
     })
     .componentDidMount(_.backend.start())
     .buildU
