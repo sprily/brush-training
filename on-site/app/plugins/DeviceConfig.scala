@@ -2,6 +2,8 @@ package uk.co.sprily
 package btf.web
 package plugins
 
+import java.io.File
+import java.io.FileWriter
 import java.net.InetAddress
 
 import com.github.kxbmap.configs._
@@ -26,12 +28,68 @@ case class Devices(
 
 /**
   * Provides the device configuration.
+  *
+  * TODO make writing config to file optional
   */
 class DeviceConfig(app: Application) extends Plugin
                                         with LazyLogging {
 
   val GeneratorId  = DeviceId(1)
   val GridId       = DeviceId(2)
+
+  private[this] val deviceConfigFile: File = {
+    val f = new File(app.configuration.
+             getString("datahopper.device-config-file")
+             getOrElse {
+               throw new RuntimeException("Misconfigured - no 'datahopper.device-config-file' found'")
+             }
+    )
+
+    val dir = f.getParentFile
+    if (!dir.exists && !dir.mkdirs()) {
+      throw new RuntimeException(s"Cannot create device config file: $f")
+    }
+
+    try {
+      f.createNewFile()   // this checks for existence first
+    } catch {
+      case e: Exception =>
+        throw new RuntimeException(s"Error setting up device config file: $f")
+    }
+
+    if (!f.canRead || !f.canWrite) {
+      throw new RuntimeException(s"Cannot read and write device config file: $f")
+    }
+
+    f
+  }
+
+  private def writeDevices(devices: Devices): Unit = synchronized {
+    val out = new FileWriter(deviceConfigFile)
+    try {
+      val cfg = s"""datahopper {
+                   |  generator-meter {
+                   |    host = "${devices.generator.host.getHostName}"
+                   |    port = ${devices.generator.port},
+                   |    unit = ${devices.generator.unit}
+                   |  }
+                   |  grid-meter {
+                   |    host = "${devices.grid.host.getHostName}"
+                   |    port = ${devices.grid.port},
+                   |    unit = ${devices.grid.unit}
+                   |  }
+                   |}""".stripMargin
+      out.write(cfg)
+      out.flush()
+      logger.info(s"Wrote new device config out to file")
+    } catch {
+      case e: Exception =>
+        logger.error(s"Error writing config file: ${e.getMessage}")
+        throw e
+    } finally {
+      out.close()
+    }
+  }
 
   private[this] lazy val gen  = async.signalOf[ModbusDevice](
     loadDeviceConfig("datahopper.generator-meter", as = GeneratorId))
@@ -45,6 +103,7 @@ class DeviceConfig(app: Application) extends Plugin
   def set(ds: Devices): Devices = {
     gen.set(ds.generator).run
     grid.set(ds.grid).run
+    writeDevices(ds)
     ds
   }
 
@@ -54,15 +113,23 @@ class DeviceConfig(app: Application) extends Plugin
 
   private def loadDeviceConfig(key: String, as: DeviceId) = {
     logger.info(s"Attempting to load '$key' device.")
-    val cfg = app.configuration.underlying.getConfig(key)
-    logger.info(s"'$key' raw config: $cfg")
-    val d = ModbusDevice(
-      id   = as,
-      host = cfg.get[InetAddress]("host"),
-      port = cfg.get[Int]("port"),
-      unit = cfg.get[Int]("unit"))
-    logger.info(s"Loaded '$key' device: $d")
-    d
+    try {
+      val cfg = ConfigFactory.parseFile(deviceConfigFile)
+      val fallback = app.configuration.underlying
+      val merged = cfg.withFallback(fallback).getConfig(key)
+      logger.info(s"'$key' raw config: $merged")
+      val d = ModbusDevice(
+        id   = as,
+        host = merged.get[InetAddress]("host"),
+        port = merged.get[Int]("port"),
+        unit = merged.get[Int]("unit"))
+      logger.info(s"Loaded '$key' device: $d")
+      d
+    } catch {
+      case e: Exception =>
+        logger.error(s"Error reading config file(s): ${e.getMessage}")
+        throw e
+    }
   }
 
   private implicit def inetAddressAtPath: AtPath[InetAddress] = Configs.atPath { (cfg, key) =>
@@ -76,7 +143,4 @@ object DeviceConfig {
   def get: DeviceConfig = Play.current.plugin[DeviceConfig]
     .getOrElse(throw new RuntimeException("DeviceConfig plugin not enabled"))
 
-    //Play.current.plugin[Harvesting]
-    //  .getOrElse(throw new RuntimeException("Harvesting plugin not enabled"))
-    //  .topic.subscribe
 }

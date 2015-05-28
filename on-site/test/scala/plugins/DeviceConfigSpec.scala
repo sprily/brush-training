@@ -2,6 +2,7 @@ package uk.co.sprily
 package btf.web
 package plugins
 
+import java.io.File
 import java.net.InetAddress
 
 import org.specs2.mutable.Specification
@@ -12,11 +13,12 @@ import play.api.test.Helpers._
 import uk.co.sprily.dh.harvester.DeviceId
 import uk.co.sprily.dh.modbus.ModbusDevice
 
+//TODO : test writeable configuration
 class DeviceConfigSpec extends Specification {
 
   "DeviceConfig plugin" >> {
     "reads IP4 address" in new WithApplication(ipAddressConfig) {
-      val genDevice = DeviceConfig.get.genDevice
+      val genDevice = DeviceConfig.get.snapshot.generator
       genDevice must_=== ModbusDevice(
         host = InetAddress.getByAddress(Array(192,168,1,5).map(_.toByte)),
         id   = DeviceId(1),
@@ -25,7 +27,7 @@ class DeviceConfigSpec extends Specification {
     }
 
     "reads textual host name" in new WithApplication(hostnameConfig) {
-      val genDevice = DeviceConfig.get.genDevice
+      val genDevice = DeviceConfig.get.snapshot.generator
       genDevice must_=== ModbusDevice(
         host = InetAddress.getByName(hostname),
         id   = DeviceId(1),
@@ -34,7 +36,7 @@ class DeviceConfigSpec extends Specification {
     }
 
     "reads localhost" in new WithApplication(loopbackConfig) {
-      val genDevice = DeviceConfig.get.genDevice
+      val genDevice = DeviceConfig.get.snapshot.generator
       genDevice must_=== ModbusDevice(
         host = InetAddress.getByName("localhost"),
         id   = DeviceId(1),
@@ -48,7 +50,8 @@ class DeviceConfigSpec extends Specification {
       "host" -> "192.168.1.5",
       "id"   -> 1,
       "port" -> 502,
-      "unit" -> 1)
+      "unit" -> 1),
+    "datahopper.device-config-file" -> tmpFile.getAbsolutePath
     )
   )
 
@@ -57,7 +60,8 @@ class DeviceConfigSpec extends Specification {
       "host" -> hostname,
       "id"   -> 1,
       "port" -> 502,
-      "unit" -> 1)
+      "unit" -> 1),
+    "datahopper.device-config-file" -> tmpFile.getAbsolutePath
     )
   )
 
@@ -66,11 +70,17 @@ class DeviceConfigSpec extends Specification {
       "host" -> "localhost",
       "id"   -> 1,
       "port" -> 502,
-      "unit" -> 1)
+      "unit" -> 1),
+    "datahopper.device-config-file" -> tmpFile.getAbsolutePath
     )
   )
 
-  private lazy val fakeApp = FakeApplication(withoutPlugins=List("uk.co.sprily.btf.web.plugins.Harvesting"))
+  private lazy val tmpFile = File.createTempFile("btf-testing", ".tmp.conf")
+
+  private lazy val fakeApp = FakeApplication(
+    withoutPlugins=List(
+      "uk.co.sprily.btf.web.plugins.MqttPublisher",
+      "uk.co.sprily.btf.web.plugins.Harvesting"))
 
   private def hostname = InetAddress.getLocalHost.getHostName
 }
