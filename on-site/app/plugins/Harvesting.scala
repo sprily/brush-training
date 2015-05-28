@@ -24,30 +24,32 @@ import uk.co.sprily.dh.modbus.ModbusRequestHandler
 class Harvesting(app: Application) extends Plugin
                                       with LazyLogging {
 
-  lazy private val topic = async.topic[(ModbusResponse,ModbusRequest)]()
+  lazy private val topic = async.topic[(ModbusRequest,ModbusResponse)]()
 
   lazy private val devices = DeviceConfig.get
 
   // Hard-coded reading requests because what we read is heavily tied
-  // into the custom moniting application.
-  lazy private val genRequests = List(
-    ModbusRequest(devices.genDevice, RegRange(0xC550, 0xC587)) // table 1
+  // into the custom monitoring application.
+  lazy private val genReq = devices.genSignal.continuous.map(
+    ModbusRequest(_, RegRange(0xC550, 0xC587)) // table 1
   )
 
-  lazy private val gridRequests = List(
-    ModbusRequest(devices.gridDevice, RegRange(0xC550, 0xC587)) // table 1
+  lazy private val gridReq = devices.gridSignal.continuous.map(
+    ModbusRequest(_, RegRange(0xC550, 0xC587)) // table 1
   )
+
+  lazy private val reqs = Process.emitAll(List(genReq, gridReq))
 
   lazy private val handler = new ModbusRequestHandler(
-    ioPool = Executors.newFixedThreadPool(genRequests.length + gridRequests.length),
+    ioPool = Executors.newFixedThreadPool(2),
     maxConnections = 2,   // Leave connections available for other applications, Diris has limit of 4
     closeUnusedConnectionAfter = 1.minute)
 
   lazy private val killSwitch = async.signalOf[Boolean](false)
 
   lazy private val readings = merge.mergeN(
-    Process.emitAll(genRequests ++ gridRequests).map { req =>
-      handler.recurring(req, 1.second).zip(Process.constant(req))
+    reqs.toSource.map { req =>
+      handler.responses(req, 1.second)
     }
   )
 
@@ -55,7 +57,7 @@ class Harvesting(app: Application) extends Plugin
     killSwitch.discrete.wye(readings)(wye.interrupt)
   )
 
-  lazy val mqtt = MqttPublisher.publish contramap[(ModbusResponse,ModbusRequest)](_._1)
+  lazy val mqtt = MqttPublisher.publish contramap[(ModbusRequest,ModbusResponse)](_._2)
 
   override def onStart() = {
 
@@ -76,7 +78,7 @@ class Harvesting(app: Application) extends Plugin
 }
 
 object Harvesting {
-  def subscribe: Process[Task,(ModbusResponse,ModbusRequest)] = {
+  def subscribe: Process[Task,(ModbusRequest,ModbusResponse)] = {
     Play.current.plugin[Harvesting]
       .getOrElse(throw new RuntimeException("Harvesting plugin not enabled"))
       .topic.subscribe

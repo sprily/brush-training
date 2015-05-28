@@ -1,6 +1,8 @@
 @(message: String)
 
 @layout(s"Brush Testing Facility [$message]") {
-   <div id="main-app"></div>
-   @playscalajs.html.scripts("webJS")
+   <div class="container-fluid">
+     <div id="main-app"></div>
+     @playscalajs.html.scripts("webJS")
+   </div>
 }

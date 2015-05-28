@@ -102,12 +102,12 @@ lazy val onSite = (project in file("on-site")).
     libraryDependencies ++= Seq(
       "com.vmunier"           %% "play-scalajs-scripts" % "0.2.1",
       "org.scalaz.stream"     %% "scalaz-stream"        % "0.7a",
-      "uk.co.sprily"          %% "dh-modbus"            % "0.1.1",
+      "uk.co.sprily"          %% "dh-modbus"            % "0.1.2",
       "uk.co.sprily"          %% "scala-mqtt-core"      % "0.1.4",
       "uk.co.sprily"          %% "scala-mqtt-logback"   % "0.1.4",
-      "org.webjars"            % "bootstrap"            % "3.3.4",
       "org.scodec"            %% "scodec-core"          % "1.7.0",
-      "org.scodec"            %% "scodec-bits"          % "1.0.6"
+      "org.scodec"            %% "scodec-bits"          % "1.0.6",
+      "com.adrianhurt"        %% "play-bootstrap3"      % "0.4.2"
     )
   ).
   enablePlugins(PlayScala).

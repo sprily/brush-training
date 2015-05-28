@@ -11,7 +11,8 @@ object Router extends Controller {
     Ok(
       Routes.javascriptRouter("jsRoutes")(
         routes.javascript.Application.socket,
-        routes.javascript.Logging.log
+        routes.javascript.Logging.log,
+        routes.javascript.Config.get
       )
     ).as("text/javascript")
   }

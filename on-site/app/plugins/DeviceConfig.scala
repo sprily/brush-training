@@ -14,9 +14,15 @@ import play.api.Application
 import play.api.Play
 import play.api.Plugin
 
+import scalaz.stream._
+
 import uk.co.sprily.dh.harvester.DeviceId
 import uk.co.sprily.dh.modbus.ModbusDevice
 import uk.co.sprily.dh.modbus.ModbusNetLoc
+
+case class Devices(
+    generator: ModbusDevice,
+    grid: ModbusDevice)
 
 /**
   * Provides the device configuration.
@@ -24,15 +30,34 @@ import uk.co.sprily.dh.modbus.ModbusNetLoc
 class DeviceConfig(app: Application) extends Plugin
                                         with LazyLogging {
 
-  lazy val genDevice = loadDeviceConfig("datahopper.generator-meter")
-  lazy val gridDevice = loadDeviceConfig("datahopper.grid-meter")
+  val GeneratorId  = DeviceId(1)
+  val GridId       = DeviceId(2)
 
-  private def loadDeviceConfig(key: String) = {
+  private[this] lazy val gen  = async.signalOf[ModbusDevice](
+    loadDeviceConfig("datahopper.generator-meter", as = GeneratorId))
+
+  private[this] lazy val grid = async.signalOf[ModbusDevice](
+    loadDeviceConfig("datahopper.grid-meter", as = GridId))
+
+  def genSignal: async.immutable.Signal[ModbusDevice] = gen
+  def gridSignal: async.immutable.Signal[ModbusDevice] = grid
+
+  def set(ds: Devices): Devices = {
+    gen.set(ds.generator).run
+    grid.set(ds.grid).run
+    ds
+  }
+
+  def snapshot: Devices = {
+    (genSignal.continuous zip gridSignal.continuous).take(1).runLog.run.headOption.map((Devices.apply _).tupled).get
+  }
+
+  private def loadDeviceConfig(key: String, as: DeviceId) = {
     logger.info(s"Attempting to load '$key' device.")
     val cfg = app.configuration.underlying.getConfig(key)
     logger.info(s"'$key' raw config: $cfg")
     val d = ModbusDevice(
-      id = DeviceId(cfg.get[Long]("id")),
+      id   = as,
       host = cfg.get[InetAddress]("host"),
       port = cfg.get[Int]("port"),
       unit = cfg.get[Int]("unit"))

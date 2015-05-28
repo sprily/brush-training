@@ -29,6 +29,8 @@ object Test extends js.JSApp with gauges {
       "uk.co.sprily.btf.webjs.Main.Backend",
       js.Dynamic.global.jsRoutes.uk.co.sprily.btf.web.controllers.Logging.log().absoluteURL().asInstanceOf[String])
 
+    val configHref = js.Dynamic.global.jsRoutes.uk.co.sprily.btf.web.controllers.Config.get().absoluteURL().asInstanceOf[String]
+
     def start() = {
       logger.info("Starting Backend")
       ws = WSModule.connect(wsURI.asInstanceOf[String], 10.seconds)
@@ -189,6 +191,9 @@ object Test extends js.JSApp with gauges {
 
         <.div(grid.col(4), ^.cls := "text-center",
           Logo(),
+          <.a(
+            ^.href := $.backend.configHref,
+            "Configuration"),
           EstablishingConnection()
         ),
 
@@ -203,7 +208,10 @@ object Test extends js.JSApp with gauges {
         ),
 
         <.div(grid.col(4), ^.cls := "text-center",
-          Logo()
+          Logo(),
+          <.a(
+            ^.href := $.backend.configHref,
+            "Configuration")
         ),
 
         <.div(

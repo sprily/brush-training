@@ -1,5 +1,7 @@
 GET  /                    uk.co.sprily.btf.web.controllers.Application.index
 GET  /ws                  uk.co.sprily.btf.web.controllers.Application.socket
+GET  /config              uk.co.sprily.btf.web.controllers.Config.get
+POST /config              uk.co.sprily.btf.web.controllers.Config.update
 
 # JS Client API
 POST /_js/log                 uk.co.sprily.btf.web.controllers.Logging.log

@@ -14,6 +14,7 @@ import scalaz.stream._
 
 import upickle._
 
+import uk.co.sprily.dh.harvester.DeviceId
 import uk.co.sprily.dh.modbus.ModbusDevice
 import uk.co.sprily.dh.modbus.ModbusResponse
 import uk.co.sprily.dh.modbus.ModbusRequest
@@ -31,25 +32,22 @@ object Application extends Controller {
     MyWebSocketActor.props(
       out,
       (plugins.Harvesting.subscribe |> DeviceReadings.decode |> process1.stripNone),
-      DeviceConfig.get.gridDevice,
-      DeviceConfig.get.genDevice
+      DeviceConfig.get
     )
   }
 
   object MyWebSocketActor {
     def props(out: ActorRef,
               stream: Process[Task,DeviceReadings],
-              gridDevice: ModbusDevice,
-              generatorDevice: ModbusDevice) = Props(
-      new MyWebSocketActor(out, stream, gridDevice, generatorDevice)
+              devices: DeviceConfig) = Props(
+      new MyWebSocketActor(out, stream, devices)
     )
   }
 
   class MyWebSocketActor(
       out: ActorRef,
       stream: Process[Task,DeviceReadings],
-      gridDevice: ModbusDevice,
-      generatorDevice: ModbusDevice) extends Actor {
+      devices: DeviceConfig) extends Actor {
 
     type Output = Either[GridReadings,GeneratorReadings]
 
@@ -66,7 +64,7 @@ object Application extends Controller {
         out ! "heartbeat"
         system.scheduler.scheduleOnce(3000.millis, self, SendHeartbeat)
 
-      case r@DeviceReadings(d,_,_,_,_,_,_) if d == gridDevice =>
+      case r@DeviceReadings(d,_,_,_,_,_,_) if d.id == devices.GridId =>
         val rs: Output = Left(GridReadings(current = r.current,
                               activePower = r.activePower,
                               reactivePower = r.reactivePower,
@@ -75,7 +73,7 @@ object Application extends Controller {
                               frequency = r.frequency))
         out ! upickle.write(rs)
 
-      case r@DeviceReadings(d,_,_,_,_,_,_) if d == generatorDevice =>
+      case r@DeviceReadings(d,_,_,_,_,_,_) if d.id == devices.GeneratorId =>
         val rs: Output = Right(GeneratorReadings(current = r.current,
                                    activePower = r.activePower,
                                    reactivePower = r.reactivePower,

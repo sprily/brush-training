@@ -1,0 +1,70 @@
+@(form: Form[uk.co.sprily.btf.web.controllers.AppConfig])
+
+@implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-sm-4", "col-sm-4") }
+
+@layout(s"Brush Testing Facility [Configuration]") {
+
+  <div class="container">
+    <div class="row">
+
+      <h1 class="text-center">Configuration</h1>
+
+      @b3.form(action = uk.co.sprily.btf.web.controllers.routes.Config.update()) {
+
+        <div class="panel panel-default">
+          <div class="panel-heading text-center"><h4>Generator</h4></div>
+          <div class="panel-body">
+            @b3.text(
+              form("generator.host"),
+              '_label -> "IP Address",
+              '_showConstraints -> false)
+
+            @b3.text(
+              form("generator.port"),
+              '_label -> "Port",
+              '_showConstraints -> false)
+
+            @b3.text(
+              form("generator.unit"),
+              '_label -> "Unit Address",
+              '_help  -> "Address on the RS-485 network",
+              '_showConstraints -> false)
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-heading text-center"><h4>Grid</h4></div>
+          <div class="panel-body">
+            @b3.text(
+              form("grid.host"),
+              '_label -> "IP Address",
+              '_showConstraints -> false)
+
+            @b3.text(
+              form("grid.port"),
+              '_label -> "Port",
+              '_showConstraints -> false)
+
+            @b3.text(
+              form("grid.unit"),
+              '_label -> "Unit Address",
+              '_help  -> "Address on the RS-485 network",
+              '_showConstraints -> false)
+          </div>
+        </div>
+
+        @b3.free('_id -> "idFormGroup") {
+          <button type="submit" class="btn btn-primary">
+            <span class="glyphicon glyphicon-ok"></span> Save changes
+          </button>
+  
+          <a href="@uk.co.sprily.btf.web.controllers.routes.Application.index()"
+             class="btn btn-default">
+            <span class="glyphicon glyphicon-remove"></span> Cancel
+          </a>
+        }
+      }
+
+    </div>
+  </div>
+}

@@ -15,9 +15,9 @@ import btf.webshared._
 
 object DeviceReadings {
 
-  def decode: Process1[(ModbusResponse,ModbusRequest), Option[DeviceReadings]] = {
+  def decode: Process1[(ModbusRequest,ModbusResponse), Option[DeviceReadings]] = {
     process1.lift {
-      case (ModbusResponse(device,ts,data), ModbusRequest(_,selection)) =>
+      case (ModbusRequest(_,selection), ModbusResponse(device,ts,data)) =>
         registers.decode(data.toBitVector).fold(
           err => None,
           rs  => Some {

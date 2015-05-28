@@ -1,8 +1,6 @@
 package uk.co.sprily
 package btf.webshared
 
-import upickle._
-
 trait PanelReadings {
   def current: Int
   def activePower: Int
