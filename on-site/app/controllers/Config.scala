@@ -2,8 +2,7 @@ package uk.co.sprily
 package btf.web
 package controllers
 
-import java.net.InetAddress
-import java.net.UnknownHostException
+import com.google.common.net.InetAddresses
 
 import com.typesafe.scalalogging.LazyLogging
 
@@ -48,16 +47,10 @@ object Config extends Controller with LazyLogging {
     )
   }
 
-  // TODO: Use the Guava lib here
   val ipAddress: Constraint[String] = Constraint("constraints.ipaddress")(s =>
-    try {
-      logger.info(s"Validated ${InetAddress.getByName(s)}")
-      Valid
-    } catch {
-      case (e: UnknownHostException) => Invalid(
-        Seq(ValidationError(s"Invalid host")))
-      case (e: Exception) => Invalid(
-        Seq(ValidationError(s"Error parsing host: ${e.getMessage}")))
+    InetAddresses.isInetAddress(s) match {
+      case true  => Valid
+      case false => Invalid(Seq(ValidationError(s"Invalid IP Address")))
     }
   )
 
@@ -80,13 +73,13 @@ object Config extends Controller with LazyLogging {
   )
 
   private def toMeterCfg(d: ModbusDevice) = MeterConfig(
-    host = d.host.getHostName,
+    host = d.host.getHostAddress,
     port = d.port,
     unit = d.unit)
 
   private def applyCfg(d: ModbusDevice, cfg: MeterConfig): ModbusDevice = {
     d.copy(
-      host = InetAddress.getByName(cfg.host),
+      host = InetAddresses.forString(cfg.host),
       port = cfg.port,
       unit = cfg.unit
     )

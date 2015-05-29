@@ -8,6 +8,8 @@ import java.net.InetAddress
 
 import com.github.kxbmap.configs._
 
+import com.google.common.net.InetAddresses
+
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
@@ -69,12 +71,12 @@ class DeviceConfig(app: Application) extends Plugin
     try {
       val cfg = s"""datahopper {
                    |  generator-meter {
-                   |    host = "${devices.generator.host.getHostName}"
+                   |    host = "${devices.generator.host.getHostAddress}"
                    |    port = ${devices.generator.port},
                    |    unit = ${devices.generator.unit}
                    |  }
                    |  grid-meter {
-                   |    host = "${devices.grid.host.getHostName}"
+                   |    host = "${devices.grid.host.getHostAddress}"
                    |    port = ${devices.grid.port},
                    |    unit = ${devices.grid.unit}
                    |  }
@@ -133,7 +135,7 @@ class DeviceConfig(app: Application) extends Plugin
   }
 
   private implicit def inetAddressAtPath: AtPath[InetAddress] = Configs.atPath { (cfg, key) =>
-    InetAddress.getByName(cfg.getString(key))
+    InetAddresses.forString(cfg.getString(key))
   }
 
 }

@@ -25,49 +25,11 @@ class DeviceConfigSpec extends Specification {
         port = 502,
         unit = 1)
     }
-
-    "reads textual host name" in new WithApplication(hostnameConfig) {
-      val genDevice = DeviceConfig.get.snapshot.generator
-      genDevice must_=== ModbusDevice(
-        host = InetAddress.getByName(hostname),
-        id   = DeviceId(1),
-        port = 502,
-        unit = 1)
-    }
-
-    "reads localhost" in new WithApplication(loopbackConfig) {
-      val genDevice = DeviceConfig.get.snapshot.generator
-      genDevice must_=== ModbusDevice(
-        host = InetAddress.getByName("localhost"),
-        id   = DeviceId(1),
-        port = 502,
-        unit = 1)
-    }
   }
 
   private lazy val ipAddressConfig = fakeApp.copy(additionalConfiguration = Map(
     "datahopper.generator-meter" -> Map(
       "host" -> "192.168.1.5",
-      "id"   -> 1,
-      "port" -> 502,
-      "unit" -> 1),
-    "datahopper.device-config-file" -> tmpFile.getAbsolutePath
-    )
-  )
-
-  private lazy val hostnameConfig = fakeApp.copy(additionalConfiguration = Map(
-    "datahopper.generator-meter" -> Map(
-      "host" -> hostname,
-      "id"   -> 1,
-      "port" -> 502,
-      "unit" -> 1),
-    "datahopper.device-config-file" -> tmpFile.getAbsolutePath
-    )
-  )
-
-  private lazy val loopbackConfig = fakeApp.copy(additionalConfiguration = Map(
-    "datahopper.generator-meter" -> Map(
-      "host" -> "localhost",
       "id"   -> 1,
       "port" -> 502,
       "unit" -> 1),

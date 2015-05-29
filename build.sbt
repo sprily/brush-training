@@ -107,7 +107,8 @@ lazy val onSite = (project in file("on-site")).
       "uk.co.sprily"          %% "scala-mqtt-logback"   % "0.1.4",
       "org.scodec"            %% "scodec-core"          % "1.7.0",
       "org.scodec"            %% "scodec-bits"          % "1.0.6",
-      "com.adrianhurt"        %% "play-bootstrap3"      % "0.4.2"
+      "com.adrianhurt"        %% "play-bootstrap3"      % "0.4.2",
+      "com.google.guava"       % "guava"                % "18.0"
     )
   ).
   enablePlugins(PlayScala).
