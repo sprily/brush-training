@@ -22,6 +22,7 @@ object Test extends js.JSApp with gauges {
 
     import monifu.concurrent.Implicits.globalScheduler
 
+    private[this] var staleTimer: js.UndefOr[js.timers.SetIntervalHandle] = js.undefined
     private[this] var ws: js.UndefOr[WS] = js.undefined
     private[this] val wsURI = js.Dynamic.global.jsRoutes.uk.co.sprily.btf.web.controllers.Application.socket().webSocketURL()
 
@@ -39,7 +40,17 @@ object Test extends js.JSApp with gauges {
         case Right(r)    => update(r)
       }
       ws.get.status.foreach(onWSChange)
+
+      staleTimer = js.timers.setInterval(1000)(checkStale())
     }
+
+    def stop() = {
+      logger.info("Stopping Backend")
+      ws foreach(_.disconnect())
+      staleTimer foreach js.timers.clearInterval
+    }
+
+    private def checkStale() = $.modState(s => s)
 
     private def onWSChange(state: WSState) = $.modState { s =>
       s.copy(websocketState=state)
@@ -88,8 +99,16 @@ object Test extends js.JSApp with gauges {
       lastUpdate: Option[js.Date],
       readings: T) { // TODO option
 
+    val staleTimout = 5000 //ms
+
     def lastUpdateStr = lastUpdate.map(_.toTimeString).getOrElse("Never") // todo locale
+
+    // whether the data stream has bee activated, ie - we've seen some data
     def isActive = lastUpdate != None
+
+    // whether the last data seen is now too old to display.
+    // if we're not active, then we're not stale.
+    def isStale = lastUpdate.map(_.getTime + staleTimout < js.Date.now()).getOrElse(false)
 
   }
 
@@ -141,6 +160,14 @@ object Test extends js.JSApp with gauges {
     }
     .build
 
+  val StalePanel = ReactComponentB[PanelState[PanelReadings]]("Panel")
+    .render ( panelState =>
+      <.div(^.cls := "text-center",
+        <.p(s"No data received since ${panelState.lastUpdateStr}")
+        )
+    )
+    .build
+
   val Panel = ReactComponentB[(GaugePanel,PanelState[PanelReadings])]("Panel")
     .render { S =>
       <.div(^.cls := "panel panel-default",
@@ -148,7 +175,11 @@ object Test extends js.JSApp with gauges {
           <.p(^.cls := "panel-title", S._1.label)
         ),
         <.div(^.cls := "panel-body",
-          if (S._2.isActive) ActivePanel(S) else InactivePanel(S._2)
+          (S._2.isActive, S._2.isStale) match {
+            case (false, _)    => InactivePanel(S._2)
+            case (true, false) => ActivePanel(S)
+            case (true, true)  => StalePanel(S._2)
+          }
         ),
         <.div(^.cls := "panel-footer text-center",
           <.small(<.em(s"Last Updated: ${S._2.lastUpdateStr}"))
@@ -222,6 +253,7 @@ object Test extends js.JSApp with gauges {
 
     })
     .componentDidMount(_.backend.start())
+    .componentWillUnmount(_.backend.stop())
     .buildU
 
   val mountNode = dom.document.getElementById("main-app")
