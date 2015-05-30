@@ -13,8 +13,8 @@
 JAVA_OPTS="-Xms128m -Xms512m -server $JAVA_OPTS"
 
 # Add additional jvm parameters
-# TODO: bind to 80 as non-privelaged user, or setup reverse proxy
-JAVA_OPTS="-Dhttp.port=8080 -Dhttp.address=0.0.0.0 $JAVA_OPTS"
+JAVA_OPTS="-Dhttp.port=9000 -Dhttp.address=127.0.0.1 $JAVA_OPTS"
 
 JAVA_OPTS="-Dpidfile.path=/var/run/${{app_name}}/play.pid $JAVA_OPTS"
 JAVA_OPTS="-Dconfig.file=/etc/${{app_name}}/brush-training-facility.conf $JAVA_OPTS"
+JAVA_OPTS="-Dlogger.file=/etc/${{app_name}}/logger.xml $JAVA_OPTS"
