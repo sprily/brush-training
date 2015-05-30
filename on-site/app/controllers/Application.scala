@@ -6,6 +6,8 @@ import scala.concurrent.duration._
 
 import akka.actor._
 
+import com.typesafe.scalalogging.LazyLogging
+
 import play.api.mvc._
 import play.api.Play.current
 
@@ -22,7 +24,7 @@ import uk.co.sprily.dh.modbus.ModbusRequest
 import btf.webshared._
 import btf.web.plugins._
 
-object Application extends Controller {
+object Application extends Controller with LazyLogging {
 
   def index = Action {
     Ok(views.html.index("It works"))
@@ -65,6 +67,7 @@ object Application extends Controller {
         system.scheduler.scheduleOnce(3000.millis, self, SendHeartbeat)
 
       case r@DeviceReadings(d,_,_,_,_,_,_) if d.id == devices.GridId =>
+        logger.debug(r.toString)
         val rs: Output = Left(GridReadings(current = r.current,
                               activePower = r.activePower,
                               reactivePower = r.reactivePower,
@@ -74,6 +77,7 @@ object Application extends Controller {
         out ! upickle.write(rs)
 
       case r@DeviceReadings(d,_,_,_,_,_,_) if d.id == devices.GeneratorId =>
+        logger.debug(r.toString)
         val rs: Output = Right(GeneratorReadings(current = r.current,
                                    activePower = r.activePower,
                                    reactivePower = r.reactivePower,
