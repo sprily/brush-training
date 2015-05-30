@@ -55,12 +55,14 @@ lazy val webJS = (project in file("web-js")).
       "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.4",
       "com.github.japgolly.scalacss"      %%% "core" % "0.2.0",
       "com.github.japgolly.scalacss"      %%% "ext-react" % "0.2.0",
-      "com.lihaoyi"                       %%% "upickle" % "0.2.8"
+      "com.lihaoyi"                       %%% "upickle" % "0.2.8",
+      "com.lihaoyi"                       %%% "utest" % "0.3.1"
     ),
     jsDependencies ++= Seq(
       "org.webjars" % "react"          % "0.12.1" / "react-with-addons.min.js" commonJSName "React",
       "org.webjars" % "log4javascript" % "1.4.10" / "js/log4javascript.js"
-    )
+    ),
+    testFrameworks += new TestFramework("utest.runner.Framework")
   ).
   enablePlugins(ScalaJSPlugin, ScalaJSPlay, SbtWeb).
   dependsOn(webSharedJs)

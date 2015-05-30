@@ -29,7 +29,7 @@ object DeviceReadings {
               current = readings(0xC560),
               activePower = readings(0xC568),
               reactivePower = readings(0xC56A),
-              powerFactor = readings(0xC582),
+              powerFactor = readings(0xC56E),
               voltage = readings(0xC558),
               frequency = readings(0xC55E))
           }

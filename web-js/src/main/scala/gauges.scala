@@ -20,23 +20,29 @@ trait gauges {
       majorTicks: Int, minorTicks: Int,
       minValue: Double, maxValue: Double, labelPrecision: Int,
       unitLabel: String, gaugeLabel: String,
-      scaleBy: Double) {
+      scaleBy: Double)
 
-    def angleFor(raw: Double) = degrees(scale(raw))
+  trait Angles {
+    protected def degrees(bounded: Double): Degrees
+    protected def bounded(scaled: Double): Double
+    protected def scaled(raw: Double): Double
 
-    private def degrees(scaled: Double) = {
-      (Math.max(Math.min(scaled, maxValue), minValue) - minValue) / (maxValue - minValue) * 90.0 - 45.0
+    def pointerAngle(raw: Double): Degrees = {
+      degrees(bounded(scaled(raw)))
     }
-
-    private def scale(raw: Double) = raw * scaleBy
   }
 
-  case class Gauge(layout: GaugeLayout)
+  case class Gauge(layout: GaugeLayout) extends Angles {
+    import layout._
 
+    override def degrees(bounded: Double) = (bounded - minValue) / (maxValue - minValue) * 90.0
+    override def bounded(scaled: Double) = Math.max(Math.min(scaled, maxValue), minValue)
+    override def scaled(raw: Double) = raw * scaleBy
+  }
 
   // Fixed layout for Power Factor Gauge
-  case object PFGauge {
-    def layout = GaugeLayout(majorTicks =  7,
+  case object PFGauge extends Angles {
+    val layout = GaugeLayout(majorTicks =  7,
                              minorTicks =  3,
                              minValue   =  0.2,
                              maxValue   =  1.0,
@@ -44,6 +50,22 @@ trait gauges {
                              unitLabel = "cos φ",
                              gaugeLabel = "Power Factor",
                              scaleBy = 0.001)
+
+    import layout._
+
+    override def degrees(bounded: Double) = bounded match {
+      case v if v < 0 => // leading (45-90 degrees)
+        90.0 - (-bounded - minValue) / (maxValue - minValue) * 45.0
+      case v          => // lagging (0-45 degrees)
+        (bounded - minValue) / (maxValue - minValue) * 45.0
+    }
+
+    override def bounded(scaled: Double) = scaled match {
+      case v if v > 0 => Math.max(minValue, v)
+      case v          => Math.min(-minValue, v)
+    }
+
+    override def scaled(raw: Double) = raw * scaleBy
   }
 
   object Gauge {
@@ -81,7 +103,7 @@ trait gauges {
                 UnitLabel(gauge.layout),
                 Dial(gauge.layout),
                 PFDialLabels(gauge.layout),
-                Arm(gauge.layout.angleFor(data)),
+                Arm(gauge.pointerAngle(data)),
                 Frame(),
                 ArmLid(),
                 InnerShadow(),
@@ -115,7 +137,7 @@ trait gauges {
                 UnitLabel(gauge.layout),
                 Dial(gauge.layout),
                 DialLabels(gauge.layout),
-                Arm(gauge.layout.angleFor(data)),
+                Arm(gauge.pointerAngle(data)),
                 Frame(),
                 ArmLid(),
                 InnerShadow(),
@@ -170,6 +192,9 @@ trait gauges {
     .render { theta =>
       <.svg.g(
 
+        // The original SVG was defined with the pointer in a central position, hence the `- 45`.
+        ^.svg.transform := s"rotate(${theta - 45.0}, 190.936, 190.936)",
+
         // Defines the fill for the meter's arm and ball
         <.svg.radialgradient(
           ^.svg.id := "SVGID_1_",
@@ -190,7 +215,6 @@ trait gauges {
           ^.svg.d := "M190.44,165.374c-4.911,0.085-9.474,1.554-13.325,4.024L82.871,85.876l-9.246-8.93l-0.351,0.363 l-0.345,0.356l9.229,8.911l86.723,91.352c-2.327,3.933-3.632,8.537-3.546,13.441c0.246,14.113,11.886,25.353,25.998,25.106 c7.066-0.124,13.411-3.104,17.955-7.819c4.532-4.703,7.273-11.133,7.15-18.179C216.192,176.367,204.553,165.127,190.44,165.374z"
         ),
         ^.svg.id := "arm",
-        ^.svg.transform := s"rotate($theta, 190.936, 190.936)",
         <.svg.path(
           ^.svg.d := "M216.442,190.926c0-14.114-11.441-25.556-25.556-25.556c-4.912,0-9.499,1.389-13.394,3.791L84.721,84.007l-9.089-9.089 l-0.356,0.357l133.701,133.702C213.59,204.354,216.442,197.973,216.442,190.926z"
         ),
