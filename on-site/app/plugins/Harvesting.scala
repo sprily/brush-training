@@ -24,6 +24,12 @@ import uk.co.sprily.dh.modbus.ModbusRequestHandler
 class Harvesting(app: Application) extends Plugin
                                       with LazyLogging {
 
+  lazy val requestInterval = {
+    app.configuration.getMilliseconds("datahopper.request-interval")
+                     .map(_.millis)
+                     .getOrElse(1.second)
+  }
+
   lazy private val topic = async.topic[(ModbusRequest,ModbusResponse)]()
 
   lazy private val devices = DeviceConfig.get
@@ -49,7 +55,7 @@ class Harvesting(app: Application) extends Plugin
 
   lazy private val readings = merge.mergeN(
     reqs.toSource.map { req =>
-      handler.responses(req, 1.second)
+      handler.responses(req, requestInterval)
     }
   )
 
