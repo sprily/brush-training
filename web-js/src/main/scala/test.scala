@@ -53,6 +53,7 @@ object Test extends js.JSApp with gauges {
     private def checkStale() = $.modState(s => s)
 
     private def onWSChange(state: WSState) = $.modState { s =>
+      logger.info(s"WS state changed to: $state")
       s.copy(websocketState=state)
     }
 
@@ -211,46 +212,52 @@ object Test extends js.JSApp with gauges {
       )
     }.buildU
 
-  val Dashboard = ReactComponentB[Unit]("Dashboard")
-    .initialState(State.init)
-    .backend(new Backend(_))
-    .renderS(($,_,S) => S.websocketState match {
-
-      case WSClosed => <.div(grid.row,
-
+  val NoDataStream = ReactComponentB[(State,Backend)]("Panels")
+    .render ( S => {
+      val (state, backend) = S
+      <.div(grid.row,
         <.div(grid.col(4)),   // empty
-
         <.div(grid.col(4), ^.cls := "text-center",
           Logo(),
           <.a(
-            ^.href := $.backend.configHref,
+            ^.href := backend.configHref,
             "Configuration"),
           EstablishingConnection()
         ),
-
         <.div(grid.col(4))    // empty
       )
+    })
+    .build
 
-      case WSOpen  => <.div(grid.row,
-
+  val DataStream = ReactComponentB[(State,Backend)]("Panels")
+    .render ( S => {
+      val (state, backend) = S
+      <.div(grid.row,
         <.div(
           grid.col(4),
-          Panel((S.instruments.grid, S.grid))
+          Panel((state.instruments.grid, state.grid))
         ),
-
         <.div(grid.col(4), ^.cls := "text-center",
           Logo(),
           <.a(
-            ^.href := $.backend.configHref,
+            ^.href := backend.configHref,
             "Configuration")
         ),
-
         <.div(
           grid.col(4),
-          Panel((S.instruments.generator, S.generator))
+          Panel((state.instruments.generator, state.generator))
         )
       )
+    })
+    .build
 
+  val Dashboard = ReactComponentB[Unit]("Dashboard")
+    .initialState(State.init)
+    .backend(new Backend(_))
+    .render((P,S,B) => S.websocketState match {
+      case WSClosing => NoDataStream((S,B))
+      case WSClosed  => NoDataStream((S,B))
+      case WSOpen    => DataStream((S,B))
     })
     .componentDidMount(_.backend.start())
     .componentWillUnmount(_.backend.stop())

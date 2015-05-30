@@ -16,6 +16,7 @@ import upickle._
 
 sealed trait WSState
 case object WSOpen extends WSState
+case object WSClosing extends WSState
 case object WSClosed extends WSState
 
 trait WSModule {
@@ -110,9 +111,10 @@ object WSModule extends WSModule {
       raw match {
         case Some(ws) if ws.readyState == dom.WebSocket.OPEN =>
           logger.warning(s"Closing connection due to heartbeat failing")
+          statusChannel.pushNext(WSClosing)
           ws.close()
         case Some(_) =>
-          logger.info(s"Not closing connection due to heartbeat failure as it is not open")
+          logger.debug(s"Not closing connection due to heartbeat failure as it is not open")
         case None =>
           logger.error(s"Unexpected state: no raw websocket available")
           reconnect()
