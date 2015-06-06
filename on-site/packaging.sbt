@@ -33,5 +33,5 @@ version in Debian <<= (version, buildCount, commitId) { (v, build, commit) =>
   }
 }
 
-debianPackageDependencies in Debian ++= Seq("java2-runtime")
+debianPackageDependencies in Debian ++= Seq("java7-runtime-headless")
 serverLoading in Debian := SystemV
