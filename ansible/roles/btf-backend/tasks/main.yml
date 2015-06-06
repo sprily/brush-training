@@ -1,0 +1,4 @@
+---
+# onSite main
+
+- include: nginx.yml

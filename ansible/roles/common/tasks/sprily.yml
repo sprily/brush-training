@@ -1,0 +1,12 @@
+---
+# Sprily specifics
+
+- name: ensure Sprily release signing key is added to apt
+  apt_key:
+    keyserver=hkp://pool.sks-keyservers.net:80
+    id=130439B907C4A099
+
+- name: ensure Sprily repositories are configured
+  apt_repository:
+    repo='deb https://repo.sprily.co.uk/apt/debian jessie main'
+    state=present

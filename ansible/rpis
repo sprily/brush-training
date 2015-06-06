@@ -1,0 +1,5 @@
+[backend]
+btf-backend	ansible_ssh_user=root
+
+[frontend]
+btf-frontend	ansible_ssh_user=root

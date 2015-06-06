@@ -1,0 +1,8 @@
+---
+# backend.yml
+
+- hosts: btf-backend
+  roles:
+  #- basic-nginx
+  - common
+  #- brush-training-facility
