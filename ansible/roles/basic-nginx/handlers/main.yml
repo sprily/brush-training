@@ -2,9 +2,7 @@
 # basic-nginx handlers
 
 - name: reload nginx
-  sudo: yes
   service: name=nginx state=reloaded
 
 - name: restart nginx
-  sudo: yes
   service: name=nginx state=restarted

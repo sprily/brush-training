@@ -1,4 +1,7 @@
 ---
 # onSite main
 
+- name: ensure brush-training-facility is installed
+  apt: pkg=brush-training-facility state=installed
+
 - include: nginx.yml

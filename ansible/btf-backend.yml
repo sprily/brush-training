@@ -3,6 +3,6 @@
 
 - hosts: btf-backend
   roles:
-  #- basic-nginx
+  - basic-nginx
   - common
-  #- brush-training-facility
+  - btf-backend
