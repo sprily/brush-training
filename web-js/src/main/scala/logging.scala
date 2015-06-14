@@ -13,10 +13,16 @@ trait Logger {
 
 object Logging {
 
+  private lazy val log4JS = {
+    val underlying = Log4JavaScript.log4javascript
+    underlying.logLog.setQuietMode(true)
+    underlying
+  }
+
   private lazy val consoleAppender = new BrowserConsoleAppender()
 
   def logger(ns: String): Logger = {
-    val underlying = Log4JavaScript.log4javascript.getLogger(ns)
+    val underlying = log4JS.getLogger(ns)
     underlying.addAppender(consoleAppender)
     new LoggerImpl(underlying)
   }
@@ -49,6 +55,7 @@ object Logging {
   /** Interface to log4javascript **/
   trait Log4JavaScript extends js.Object {
     def getLogger(name: String): Log4JSLogger = js.native
+    def logLog: Log4JSLogger = js.native
   }
 
   @JSName("log4javascript.Logger")
@@ -58,6 +65,7 @@ object Logging {
     def warn(msg: String): Unit = js.native
     def error(msg: String): Unit = js.native
     def addAppender(a: Log4JSAppender): Unit = js.native
+    def setQuietMode(b: Boolean): Unit = js.native
   }
 
 
