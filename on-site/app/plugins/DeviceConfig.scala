@@ -146,3 +146,24 @@ object DeviceConfig {
     .getOrElse(throw new RuntimeException("DeviceConfig plugin not enabled"))
 
 }
+
+//object Test {
+//
+//  import scalaz.stream._
+//  import uk.co.sprily.btf.web._
+//  import uk.co.sprily.dh.modbus._
+//  import uk.co.sprily.dh.harvester._
+//  import java.util.concurrent.Executors
+//  import java.net.InetAddress
+//  import scala.concurrent.duration._
+//
+//  val device = ModbusDevice(DeviceId(1), InetAddress.getByName("192.168.1.200"), port=502, unit=5)
+//  val req = ModbusRequest(device, RegRange(0xc550, 0xc587))
+//  val handler = new ModbusRequestHandler(
+//    ioPool = Executors.newFixedThreadPool(2), maxConnections=2, closeUnusedConnectionAfter = 1.minute)
+//  def responses(n: Int) = handler.responses(reqs(n), 0.second)
+//
+//  def debug[A] = io.stdOutLines contramap ((a: A) => a.toString)
+//  def reqs(n: Int) = Process.fill(n)(req)
+//  
+//}
