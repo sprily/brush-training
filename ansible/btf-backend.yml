@@ -1,8 +1,8 @@
 ---
 # backend.yml
 
-- hosts: btf-backend
+- hosts: training-facility.lan
   roles:
-  - basic-nginx
   - common
+  - basic-nginx
   - btf-backend
