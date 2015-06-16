@@ -111,7 +111,28 @@ lazy val onSite = (project in file("on-site")).
       "org.scodec"            %% "scodec-bits"          % "1.0.6",
       "com.adrianhurt"        %% "play-bootstrap3"      % "0.4.2",
       "com.google.guava"       % "guava"                % "18.0"
-    )
+    ),
+    
+    // Despite what the docs say [1], our custom postinst script is *replacing*
+    // the one generated to start/stop services etc.  This prevents that behaviour,
+    // and instead appends our customisation to the existing postinst script.
+    //
+    // [1] http://www.scala-sbt.org/sbt-native-packager/formats/debian.html#id7
+    debianMakePostinstScript := {
+
+      val result = for {
+        maintPostinst  <- debianMakePostinstScript.value
+        toAppend       = (debianControlScriptsDirectory / "postinst-append").value
+        if toAppend.exists
+        appendContents = IO.read(toAppend)
+      } yield (maintPostinst, appendContents)
+
+      result.foreach { case (f, content) =>
+        IO.write(f, content, append=true)
+      }
+
+      result.map(_._1)
+    }
   ).
   enablePlugins(PlayScala).
   dependsOn(webSharedJvm).
