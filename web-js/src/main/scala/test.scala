@@ -78,15 +78,15 @@ object Test extends js.JSApp with gauges {
 
   object GaugePanel {
 
-    def grid      = GaugePanel("Grid Instrumentation",      current, power, mvars, pf, voltage, frequency)
-    def generator = GaugePanel("Generator Instrumentation", current, power, mvars, pf, voltage, frequency)
+    def grid      = GaugePanel("Grid Instrumentation / 电网仪表",      current, power, mvars, pf, voltage, frequency)
+    def generator = GaugePanel("Generator Instrumentation / 发电机仪表", current, power, mvars, pf, voltage, frequency)
 
-    def current   = Gauge("Line Current", "A",      0, 300, minorTicks=4, scaleBy=0.001)
-    def power     = Gauge("Active Power", "MW",     -5, 5, majorTicks=9, minorTicks=4, scaleBy=0.00001)
-    def mvars     = Gauge("Reactive Power", "MVAR",  -5, 5, majorTicks=9, minorTicks=4, scaleBy=0.00001)
+    def current   = Gauge("Line Current / 线路电路", "A",      0, 300, minorTicks=4, scaleBy=0.001)
+    def power     = Gauge("Active Power / 有功功率", "MW",     -5, 5, majorTicks=9, minorTicks=4, scaleBy=0.00001)
+    def mvars     = Gauge("Reactive Power / 无功功率", "MVAR",  -5, 5, majorTicks=9, minorTicks=4, scaleBy=0.00001)
     def pf        = PFGauge
-    def voltage   = Gauge("Voltage", "kV",     0, 15, majorTicks=2, minorTicks=9, scaleBy=0.00001)
-    def frequency = Gauge("Frequency", "Hz",    45, 55, majorTicks=9,minorTicks=3, scaleBy=0.01)
+    def voltage   = Gauge("Voltage / 电压", "kV",     0, 15, majorTicks=2, minorTicks=9, scaleBy=0.00001)
+    def frequency = Gauge("Frequency / 频率", "Hz",    45, 55, majorTicks=9,minorTicks=3, scaleBy=0.01)
 
   }
 

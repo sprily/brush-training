@@ -48,7 +48,7 @@ trait gauges {
                              maxValue   =  1.0,
                              labelPrecision  =  1,
                              unitLabel = "cos φ",
-                             gaugeLabel = "Power Factor",
+                             gaugeLabel = "Power Factor / 功率因数",
                              scaleBy = 0.001)
 
     import layout._
