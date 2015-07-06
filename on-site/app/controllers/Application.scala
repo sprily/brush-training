@@ -27,7 +27,7 @@ import btf.web.plugins._
 object Application extends Controller with LazyLogging {
 
   def index = Action {
-    Ok(views.html.index("It works"))
+    Ok(views.html.index())
   }
 
   def socket = WebSocket.acceptWithActor[String, String] { request => out =>
