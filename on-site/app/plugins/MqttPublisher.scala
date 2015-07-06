@@ -79,8 +79,8 @@ class MqttPublisher(app: Application) extends Plugin
       password = Some(cfg.get[String]("password")),
       keepAliveInterval = 60.seconds,
       InMemory)
-    val elided = o.copy(password=o.password.map(_ => "<elided>"))
-    logger.info(s"Loaded '$key' MQTT options: ${elided}")
+    val redacted = o.copy(password=o.password.map(_ => "<redacted>"))
+    logger.info(s"Loaded '$key' MQTT options: ${redacted}")
     o
   }
 
