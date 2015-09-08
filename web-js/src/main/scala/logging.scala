@@ -28,7 +28,7 @@ object Logging {
   }
 
   def ajaxLogger(ns: String, url: String): Logger = {
-    val underlying = Log4JavaScript.log4javascript.getLogger(ns)
+    val underlying = log4JS.getLogger(ns)
     underlying.addAppender(consoleAppender)
     underlying.addAppender(ajaxAppender(url))
     new LoggerImpl(underlying)
