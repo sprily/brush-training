@@ -88,20 +88,21 @@ class MqttPublisher(app: Application) extends Plugin
 
 object MqttPublisher {
 
-  lazy val publisher = Play.current.plugin[MqttPublisher]
-    .getOrElse(throw new RuntimeException("MqttPublisher plugin not enabled"))
+  lazy val publisherO = Play.current.plugin[MqttPublisher]
 
   def publish: Sink[Task,ModbusResponse] = {
     channel.lift[Task,ModbusResponse,Unit] { r =>
       Task {
-        publisher.client.foreach { client =>
-          AsyncSimpleClient.publish(
-            client,
-            Topic(s"${publisher.root}/${r.device.id.value}/data/raw"),
-            r.measurement.toArray,
-            AtMostOnce,
-            retain=false
-          )
+        publisherO.map { publisher =>
+          publisher.client.foreach { client =>
+            AsyncSimpleClient.publish(
+              client,
+              Topic(s"${publisher.root}/${r.device.id.value}/data/raw"),
+              r.measurement.toArray,
+              AtMostOnce,
+              retain=false
+            )
+          }
         }
       }
     }
