@@ -50,7 +50,7 @@
   <root level="INFO">
     <appender-ref ref="STDOUT" />
     <appender-ref ref="FILE" />
-    <appender-ref ref="MQTT" />
+    <!--<appender-ref ref="MQTT" />-->
     <appender-ref ref="WEB" />
   </root>
 
