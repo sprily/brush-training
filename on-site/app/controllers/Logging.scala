@@ -11,6 +11,8 @@ import play.api.mvc._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
+import dh.util.RecentLogs
+
 object Logging extends Controller with LazyLogging {
 
   def log = Action(BodyParsers.parse.json) { request =>
@@ -24,6 +26,11 @@ object Logging extends Controller with LazyLogging {
         Ok("")  
       }
     )
+  }
+
+  def recent = Action { request =>
+    val entries = RecentLogs.latest.take(1).runLastOr(Seq.empty[String]).run
+    Ok(views.html.logs(entries))
   }
 
   private def logEntry(e: LogEntry): Unit = {
@@ -55,3 +62,4 @@ object Logging extends Controller with LazyLogging {
     )(LogEntry.apply _)
   }
 }
+

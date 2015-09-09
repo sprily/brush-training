@@ -37,10 +37,21 @@
     </filter>
   </appender>
  
-  <root level="WARN">
+  <appender name="WEB" class="uk.co.sprily.dh.util.RecentLogsAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} - [%thread] - %message%n%xException</pattern>
+    </layout>
+
+    <!--<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>DEBUG</level>
+    </filter>-->
+  </appender>
+ 
+  <root level="INFO">
     <appender-ref ref="STDOUT" />
     <appender-ref ref="FILE" />
     <appender-ref ref="MQTT" />
+    <appender-ref ref="WEB" />
   </root>
 
   <logger name="play" level="INFO" />

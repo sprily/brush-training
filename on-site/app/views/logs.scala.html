@@ -1,0 +1,9 @@
+@(entries: Seq[String])
+@layout(s"Brush Testing Facility [Logs]") {
+
+  <div class="container">
+    <div class="row">
+      @entries.reverse.map { e => <p><small><code>@e</code></small></p> }
+    </div>
+  </div>
+}
