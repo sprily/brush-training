@@ -1,0 +1,27 @@
+---
+# onSite main
+
+- name: ensure webupd8team PPA repo is enabled
+  apt_repository:
+    repo='ppa:webupd8team/java'
+    state=present
+
+- name: ensure Oracle license is set to auto-accept
+  debconf:
+    name='oracle-java8-installer'
+    question='shared/accepted-oracle-license-v1-1'
+    value='true'
+    vtype='select'
+
+- name: ensure Oracle java8 is installed
+  apt:
+    pkg=oracle-java8-installer
+    state=installed
+
+- name: ensure brush-training-facility is installed
+  apt: pkg=brush-training-facility state=installed
+
+- name: ensure brush-training-facility auto-updates
+  template: src=cron dest=/etc/cron.d/brush-training-facility
+
+- include: nginx.yml

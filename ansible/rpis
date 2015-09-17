@@ -1,0 +1,5 @@
+[backend]
+training-facility.lan	ansible_ssh_user=root
+
+[frontend]
+btf-frontend	ansible_ssh_user=root

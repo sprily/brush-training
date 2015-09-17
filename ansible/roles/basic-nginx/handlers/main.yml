@@ -1,0 +1,8 @@
+---
+# basic-nginx handlers
+
+- name: reload nginx
+  service: name=nginx state=reloaded
+
+- name: restart nginx
+  service: name=nginx state=restarted

@@ -1,8 +1,8 @@
 import com.typesafe.sbt.packager.archetypes.ServerLoader.SystemV
 
 // Packaging configuration for the on-site service
-//enablePlugins(JDebPackaging)
-enablePlugins(DebianPlugin)
+enablePlugins(JDebPackaging)
+//enablePlugins(DebianPlugin)
 enablePlugins(JavaServerAppPackaging)
 
 maintainer := "Ian Murray <ian@sprily.co.uk>"
@@ -33,5 +33,5 @@ version in Debian <<= (version, buildCount, commitId) { (v, build, commit) =>
   }
 }
 
-debianPackageDependencies in Debian ++= Seq("java2-runtime")
+debianPackageDependencies in Debian ++= Seq("java7-runtime-headless")
 serverLoading in Debian := SystemV

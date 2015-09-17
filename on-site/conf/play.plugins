@@ -1,0 +1,5 @@
+105:uk.co.sprily.btf.web.plugins.DeviceConfig
+110:uk.co.sprily.btf.web.plugins.Harvesting
+
+# MQTT Publishing disabled
+#120:uk.co.sprily.btf.web.plugins.MqttPublisher

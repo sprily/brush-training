@@ -1,0 +1,24 @@
+---
+# Sprily specifics
+
+- name: ensure Sprily release signing key is added to apt
+  apt_key:
+    url="https://repo.sprily.co.uk/apt/D9138756.pub.asc"
+    id="9A7B3617"
+    state=present
+
+- name: ensure Sprily snapshot signing key is added to apt
+  apt_key:
+    url="https://repo.sprily.co.uk/apt/054AF3C3.pub.asc"
+    id="07C4A099"
+    state=present
+
+- name: ensure Sprily release repository is configured
+  apt_repository:
+    repo='deb https://repo.sprily.co.uk/apt/ubuntu trusty main'
+    state=present
+
+- name: ensure Sprily snapshot repository is configured
+  apt_repository:
+    repo='deb https://repo.sprily.co.uk/apt/ubuntu trusty-unstable main'
+    state=absent

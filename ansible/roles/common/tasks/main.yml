@@ -1,0 +1,12 @@
+---
+# common
+
+#- name: ensure apt cache is up to date
+#  apt: update_cache=yes
+- include: monit.yml
+- include: sprily.yml
+- name: ensure brush user exists
+  user:
+    name=brush
+    groups=adm,dialout,cdrom,floppy,sudo,audio,video,plugdev,users
+    append=yes

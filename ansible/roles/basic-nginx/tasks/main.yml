@@ -1,0 +1,25 @@
+---
+# Basic nginx tasks, used as the basis for a lot of roles.
+
+- name: make sure nginx is installed
+  apt: pkg=nginx state=installed
+
+- name: remove default site
+  file: name=/etc/nginx/sites-enabled/default state=absent
+  notify:
+    - restart nginx
+
+- name: set nginx configuration file
+  template: src=nginx.conf dest=/etc/nginx/conf.d/custom.conf
+  notify:
+    - restart nginx
+
+- name: be sure nginx is running and enabled
+  service: name=nginx state=running enabled=yes
+
+  ##- name: be sure nginx is being monitored
+  ##  sudo: yes
+  ##  template: src=monit.conf dest=/etc/monit/conf.d/nginx.conf
+  ##  notify:
+  ##    - restart monit
+  ##  tags: [nginx, service]

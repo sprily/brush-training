@@ -1,0 +1,7 @@
+---
+# onSite nginx config
+
+- name: ensure nginx acts as proxy
+  template: src=nginx.conf dest=/etc/nginx/sites-enabled/brush-training-facility.conf
+  notify:
+    - reload nginx

@@ -1,0 +1,18 @@
+---
+# Monit tasks
+
+- name: ensure monit is installed
+  apt: pkg=monit state=installed
+
+- name: ensure monit is configured
+  template: src=monit.conf dest=/etc/monit/monitrc
+  notify:
+    - restart monit
+
+- name: ensure monit config permissions are correct
+  file: path=/etc/monit/monitrc owner=root group=root mode=0600
+  notify:
+    - restart monit
+
+- name: ensure monit is running and enabled
+  service: name=monit state=running enabled=yes

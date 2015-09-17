@@ -1,0 +1,6 @@
+DAEMON_USER_HOME_DIR="/home/${{daemon_user}}"
+[ -d "$DAEMON_USER_HOME_DIR" ] || (
+	mkdir "$DAEMON_USER_HOME_DIR" &&
+	chown ${{daemon_user}} "$DAEMON_USER_HOME_DIR" &&
+	chgrp ${{daemon_user}} "$DAEMON_USER_HOME_DIR"
+)
